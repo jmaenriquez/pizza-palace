@@ -1,0 +1,69 @@
+@import url(
+  
+  'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Bree+Serif&family=Roboto+Slab:wght@100..900&family=Rye&display=swap'
+
+);
+@import 'tailwindcss';
+
+@theme {
+
+  /* Fonts */
+  --font-sans: 'Roboto Slab', serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-display: 'Playfair Display', serif;
+
+  --font-rye: 'Rye', serif;
+  --font-bree: 'Bree Serif', serif;
+  --font-poppins: 'Poppins', sans-serif;
+
+
+  /* Colors */
+  --color-foreground: #222222;
+  --color-background: #F9F7F7;
+
+  /* Red */
+  --color-primary: #EE4540; 
+
+  /* Yellow */
+  --color-secondary: #D4A653;
+
+  /* Green */
+  --color-tertiary: #5BAA51;
+  
+};
+
+@layer base{
+
+  html{
+    scroll-behavior: smooth;
+  }
+
+  body{
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+
+  @layer utilities{
+
+    @keyframes slide-down{
+      from{
+        transform: translateY(-3%);
+        opacity: 0;
+      } 
+      to{
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      
+    }
+
+
+    .animate-slide-down{
+      animation: slide-down 300ms ease-out;
+    }
+
+  }
+
+}
