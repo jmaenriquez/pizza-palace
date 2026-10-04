@@ -32,11 +32,11 @@ function Solid({ icon: Icon, name, type, iconRight, onClick }:ButtonProps ) {
         >
           {
             iconRight === true ?
-              <span className='flex gap-4 justify-center items-center'>
+              <span className='text-xs md:text-sm flex gap-4 justify-center items-center'>
               {name} {Icon && <Icon size={20}/>}
             </span>
             :
-            <span className='flex gap-4 justify-center items-center'>
+            <span className='text-xs md:text-sm  flex gap-4 justify-center items-center'>
               {Icon && <Icon size={20}/>}  {name}
             </span>
           }
@@ -55,11 +55,11 @@ function Hollow({ icon: Icon, name, type, iconRight, onClick }:ButtonProps ) {
         >
           {
             iconRight === true ?
-              <span className='flex gap-4 justify-center items-center'>
+              <span className='text-xs md:text-sm  flex gap-4 justify-center items-center'>
               {name} {Icon && <Icon size={20}/>}
             </span>
             :
-            <span className='flex gap-4 justify-center items-center'>
+            <span className='text-xs md:text-sm flex gap-4 justify-center items-center'>
               {Icon && <Icon size={20}/>}  {name}
             </span>
           }

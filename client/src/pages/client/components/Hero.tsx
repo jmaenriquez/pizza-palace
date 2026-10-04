@@ -13,11 +13,11 @@ function Hero() {
   const nav = useNavigate();
 
   return (
-    <div className='w-full h-full relative py-24 px-12 md:py-26 md:px-16  lg:p-24 xl:p-32'>
+    <div className='w-full h-full relative py-24 px-6 md:py-26 md:px-16  lg:p-24 xl:p-32'>
       
       <div>
         <img src="/Hero.png" alt="" 
-        className='absolute inset-0 w-full h-80 md:h-120 lg:h-180 xl:h-210 object-cover -z-10'
+        className='absolute inset-0 w-full h-70 md:h-120 lg:h-180 xl:h-210 object-cover -z-10'
         />
       </div>
       
@@ -39,7 +39,7 @@ function Hero() {
           <p>Unforgettable flavor in every slice.</p>
         </div>
 
-        <div className='w-40 md:w-45 lg:w-55 xl:w-60 mt-2 lg:mt-3 xl:mt-4'>
+        <div className='hidden md:block w-40 md:w-45 lg:w-55 xl:w-60 mt-2 lg:mt-3 xl:mt-4'>
           <Button.Hollow
             icon = {LuArrowRight}
             name='Order Now'

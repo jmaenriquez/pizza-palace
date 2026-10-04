@@ -1,4 +1,3 @@
-import React from "react";
 import { LuBell, LuChevronDown, LuUser } from "react-icons/lu";
 
 interface HeaderProps {
@@ -9,7 +8,7 @@ interface HeaderProps {
 function Header({ title, subtitle }: HeaderProps) {
   const userFname = "John";
   return (
-    <div className="px-12 pt-12">
+    <div className="px-4 md:px-12 pt-4 md:pt-12">
       <div className="flex flex-col gap-2 mb-8">
         <div className="flex justify-between">
           <h3 className="text-foreground text-2xl font-semibold">{title}</h3>

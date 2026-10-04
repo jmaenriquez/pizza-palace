@@ -1,18 +1,18 @@
 import  express  from "express";
 import cors from 'cors'
 
-import userRoutes from './src/routes/userRoutes'
+import productRoutes from './src/routes/productRoutes'
 
 const app = express();
 const port = 3000
 
 app.use(cors({
-    origin: 'localhost:5173/',
-    credentials: true
+    origin: 'http://localhost:5173',
+    
 }))
 
 app.use(express.json());
-app.use(userRoutes);
+app.use(productRoutes);
 
 
 app.get('/', (_,res) => {

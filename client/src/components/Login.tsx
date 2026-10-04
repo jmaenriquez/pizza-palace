@@ -1,7 +1,10 @@
 import React from "react";
-import Register from "./Register";
+import toast from "react-hot-toast";
+import supabase from "../config/supabase";
+
 import Button from "../widgets/Button";
 import Fields from "../widgets/Fields";
+
 import { useNavigate } from "react-router-dom";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { LuLock, LuUserRound } from "react-icons/lu";
@@ -12,38 +15,67 @@ interface Creds {
 }
 
 function Login() {
+  // ----------------------------------utilities--------------------
+  const nav = useNavigate();
 
-  const nav = useNavigate()
-
+  // ----------------------------------states----------------------------
   const [user, setUser] = React.useState<Creds>({
     email: "",
     password: "",
   });
+
+  // ------------------------------Functions------------------------------
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setUser((u) => ({ ...u, [e.target.name]: e.target.value }));
   };
+
+  const handleLogin = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: user.password,
+      });
+
+      if (error) {
+        console.log("Error Logging in: ", error.message);
+        toast.error(error.message);
+
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("user_infos")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      toast.success("Login success.");
+
+      if (profile?.role === "Admin") {
+        nav("/admin");
+      } else {
+        nav("/");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-
     <div className="w-full">
-
       <div className="w-full">
-
         <div className="grid gap-4">
           <div className="flex justify-center items-center md:hidden">
-            <img 
-              src="/logo.png" alt=""
-              className="w-32"
-            />
+            <img src="/logo.png" alt="" className="w-32" />
           </div>
 
           <h1 className="font-poppins mb-8 font-semibold text-center text-lg lg:text-2xl ">
             Login to Pizza Palace
           </h1>
         </div>
-
 
         <div className="grid gap-8">
           <form
@@ -77,13 +109,15 @@ function Login() {
             <Button.Solid
               name="Log In"
               type="button"
-              onClick={() => console.log("Login Clicked")}
+              onClick={handleLogin}
             />
 
             <Button.Hollow
               name="Sign Up"
               type="button"
-              onClick={() => { nav('/signup') }}
+              onClick={() => {
+                nav("/signup");
+              }}
             />
           </div>
 

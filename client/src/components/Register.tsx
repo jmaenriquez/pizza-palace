@@ -1,8 +1,11 @@
 import React from "react";
-import Login from "./Login";
+import toast from "react-hot-toast";
+import supabase from "../config/supabase";
+
 import Button from "../widgets/Button";
 import Fields from "../widgets/Fields";
-import { NavLink } from "react-router-dom";
+
+import { NavLink, useNavigate } from "react-router-dom";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 
 interface UserCreds {
@@ -16,6 +19,11 @@ interface UserCreds {
 }
 
 function Register() {
+
+  // ---------------------------------utilities--------------------------
+
+  const nav = useNavigate();
+
   //--------------------------States-------------------------------
 
   const [user, setUser] = React.useState<UserCreds>({
@@ -45,6 +53,50 @@ function Register() {
 
   const handleBack = () => {
        setNavStep( navStep - 1)
+  }
+
+  const handleSubmit = async () => {
+    try{
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: user.email,
+        password: user.password
+      })
+
+      if(authError){
+        console.error('Failed to create account:', authError.message)
+        toast.error(authError.message)
+        return
+      }
+
+      if(!authData.user){
+        console.error('Signup success but no user was returned' );
+        return; 
+      }
+
+      const { error: profileError } = await supabase
+      .from('user_infos')
+      .insert({
+        id: authData.user.id,
+        fname: user.fname,
+        mname: user.mname,
+        lname: user.lname,
+        birthday: user.birthday,
+        contact: user.contact,
+      })
+
+      if(profileError){
+        console.error('Failed to save user info: ', profileError.message );
+        toast.error(profileError.message);
+        return
+      }
+
+      toast.success('User created successfully.')
+      setUser({ email: "", password: "", fname: "", mname: "", lname: "", contact: "", birthday: "" });
+      nav('/login');
+    }catch(err){
+      console.error(err);
+    } 
   }
 
   const confirmPasswordOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +141,7 @@ function Register() {
 
         <div className="grid gap-8">
           <form
-            onSubmit={(e) => e.preventDefault}
+            onSubmit={(e) => e.preventDefault()}
             className="flex flex-col gap-4"
           >
             {
@@ -110,7 +162,7 @@ function Register() {
                     name="mname"
                     placeholder="Middle Name"
                     value={user.mname}
-                    type="password"
+                    type="text"
                     onChange={handleChange}
                   />
                 </div>
@@ -120,7 +172,7 @@ function Register() {
                     name="lname"
                     placeholder="Last Name"
                     value={user.lname}
-                    type="password"
+                    type="text"
                     onChange={handleChange}
                   />
                 </div>
@@ -145,7 +197,7 @@ function Register() {
                     name="contact"
                     placeholder="Contact Number"
                     value={user.contact}
-                    type="password"
+                    type="text"
                     onChange={handleChange}
                   />
                 </div>
@@ -201,7 +253,7 @@ function Register() {
               <Button.Solid
                 name="Sign Up"
                 type="button"
-                onClick={() => console.log("Login Clicked")}
+                onClick={handleSubmit}
               />
             }
 

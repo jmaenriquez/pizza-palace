@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom'
+
 import type { IconType } from 'react-icons'
-import { LuLayoutDashboard, LuMenu, LuNotepadText, LuSettings, LuUsers, LuUtensils } from 'react-icons/lu'
+import { LuLayoutDashboard, LuLogOut, LuMenu, LuNotepadText, LuSettings, LuUsers, LuUtensils } from 'react-icons/lu'
+
+import Button from '../widgets/Button';
+import supabase from '../config/supabase';
 
 interface Links{
   to: string,
@@ -15,9 +19,9 @@ function Sidenav() {
   const [isMobileMenu, setIsMobileMenu] = useState(false);
 
   const link: Links[] = [
-    { to: '/', name: 'Dashboard', icon: LuLayoutDashboard, key:'dashboard'},
-    { to: '/orders', name: 'Orders', icon: LuNotepadText, key:'orders'},
-    { to: '/menu', name: 'Menu', icon: LuUtensils, key:'menu'},
+    { to: '/admin', name: 'Dashboard', icon: LuLayoutDashboard, key:'dashboard'},
+    { to: 'orders', name: 'Orders', icon: LuNotepadText, key:'orders'},
+    { to: 'inventory', name: 'Menu', icon: LuUtensils, key:'inventory'},
     // { to: '/users', name: 'Users', icon: LuUsers, key:'employees'},
     // { to: '/settings', name: 'Settings ', icon: LuSettings, key:'settings'},
   ]
@@ -103,6 +107,16 @@ function Sidenav() {
 
           ))}
         </nav>
+        <div className="flex-1 flex flex-col justify-end w-full">
+          <div className='px-4 py-8'>
+            <Button.Solid
+              name='Log Out'
+              icon={LuLogOut}
+              type='button'
+              onClick={() => supabase.auth.signOut()}
+            />
+          </div>
+      </div>
       </div>
     </div>
   )
