@@ -35,6 +35,7 @@ interface FormProps {
     file: FormFiles,
     lists: FormLists,
   ) => void | Promise<void>;
+  selectedList?: FormLists | null;
 }
 
 const buildItem = (fields: FieldValues[], source?: FormItem | null) =>
@@ -43,11 +44,17 @@ const buildItem = (fields: FieldValues[], source?: FormItem | null) =>
     {} as FormItem,
   );
 
-const buildLists = (fields: FieldValues[]): FormLists =>
+const buildLists = (
+  fields: FieldValues[],
+  source?: FormLists | null,
+): FormLists =>
   Object.fromEntries(
     fields
       .filter((f) => f.fieldtype === "multiple")
-      .map((f) => [f.name, [emptyRow(f.columns ?? [])]]),
+      .map((f) => {
+        const rows = source?.[f.name];
+        return [f.name, rows?.length ? rows : [emptyRow(f.columns ?? [])]];
+      }),
   );
 
 function Form({
@@ -59,9 +66,15 @@ function Form({
   onClose,
   onOutsideClick,
   onSubmit,
+  selectedList
 }: FormProps) {
+
+  // ----------------------------------- States -------------------------------------------
   const [item, setItem] = React.useState(() => buildItem(fields, selectedItem));
   const [file, setFile] = React.useState<FormFiles>({});
+  const [lists, setLists] = React.useState<FormLists>(() =>
+  buildLists(fields, selectedList),
+);
 
   // ------------------------------------Funtions--------------------------------------------
 
@@ -75,8 +88,6 @@ function Form({
     const file = e.target.files?.[0] ?? null;
     setFile((prev) => ({ ...prev, [e.target.name]: file }));
   };
-
-  const [lists, setLists] = React.useState<FormLists>(() => buildLists(fields));
 
   const onListChange = (name: string, rows: Row[]) =>
     setLists((prev) => ({ ...prev, [name]: rows }));
@@ -102,7 +113,7 @@ function Form({
     if (!isOpen) return;
     setItem(buildItem(fields, selectedItem));
     setFile({});
-    setLists(buildLists(fields));
+    setLists(buildLists(fields, selectedList));
   }, [isOpen, selectedItem]);
 
   if (!isOpen) return;
