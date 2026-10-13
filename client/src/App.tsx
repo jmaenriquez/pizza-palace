@@ -19,6 +19,7 @@ import Settings from "./pages/admin/Settings";
 // User Side
 import UDashboard from "./pages/client/Dashboard";
 import Menu from "./pages/client/Menu";
+import Item from "./pages/client/Item.js";
 import Cart from "./pages/client/Cart";
 import About from "./pages/client/About.js";
 import Profile from "./pages/client/Profile.js";
@@ -40,7 +41,8 @@ function App() {
         <Route element={<AuthPath deny="Admin" redirectTo="/admin" />}>
           <Route element={<Parent />}>
             <Route index element={<UDashboard />} />
-            <Route path="/menu" element={<Menu />} />
+            <Route path="/menu" element={<Menu />}/>
+            <Route path="/menu/view/:id" element={<Item/>} />
             <Route path="/about" element={<About />} />
 
             {/* Authorized User */}

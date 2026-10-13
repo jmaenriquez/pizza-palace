@@ -143,7 +143,7 @@ function Inventory() {
   };
 
   const toggleMenu = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // so the document click below doesn't close it immediately
+    e.stopPropagation();
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
 
@@ -166,7 +166,6 @@ function Inventory() {
     setIsFormOpen(true);
   };
 
-  // one button + one dropdown, rendered once per layout (mobile / desktop)
   const actionMenu = (item: ProductWithVariants) => (
     <div className="relative">
       <button
@@ -206,7 +205,6 @@ function Inventory() {
 
   // ------------------------------- useEffects --------------------------
 
-  // close the open menu when clicking anywhere else
   React.useEffect(() => {
     if (!openMenuId) return;
     const close = () => setOpenMenuId(null);
