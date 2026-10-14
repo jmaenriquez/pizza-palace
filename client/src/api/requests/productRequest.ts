@@ -22,12 +22,12 @@ export type ProductWithVariants = Tables<"products"> & {
   product_variants: Tables<"product_variants">[];
 };
 
-const {
-    data: { session },
-  } = await supabase.auth.getSession();
 
 async function addRequest(product: Product) {
   
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const body = new FormData();
   body.append("name", product.name);
@@ -38,7 +38,7 @@ async function addRequest(product: Product) {
 
   const response = await fetch(`${BASE_URL}/products`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${session?.access_token}` }, // no Content-Type here
+    headers: { Authorization: `Bearer ${session?.access_token}` },
     body,
   });
 
@@ -53,6 +53,10 @@ async function addRequest(product: Product) {
 async function getRequest(
   filters: { category?: string; search?: string } = {},
 ) {
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const parameter = new URLSearchParams();
 
@@ -77,6 +81,10 @@ async function getRequest(
 }
 
 async function updateRequest(product: Product, id: string) {
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const body = new FormData;
 

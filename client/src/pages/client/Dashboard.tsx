@@ -8,9 +8,7 @@ import api, {
 import Hero from "./components/Hero";
 import { LuArrowRight } from "react-icons/lu";
 
-
 function Dashboard() {
-
   // ------------------------------------------------ utilities -------------------------------------------
 
   const nav = useNavigate();
@@ -26,12 +24,12 @@ function Dashboard() {
   };
 
   const onItemClick = (p: ProductWithVariants) => {
-      nav(`view/${p.id}`, {
-        state: {
-          products: p,
-        },
-      })
-    }
+    nav(`menu/view/${p.id}`, {
+      state: {
+        products: p,
+      },
+    });
+  };
 
   // ------------------------------------------- useEffect --------------------------------------------------
 
@@ -133,6 +131,7 @@ function Dashboard() {
               return (
                 // Cards
                 <div
+                  onClick={() => onItemClick(item)}
                   key={item.id}
                   className="overflow-hidden border border-foreground/20 rounded-lg shadow-md/40 hover:border-primary hover:cursor-pointer hover:scale-102 transition-all ease-in-out delay-75"
                 >

@@ -1,61 +1,93 @@
-
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { type ProductWithVariants } from "../../api/requests/productRequest";
 
+import api from '../../api/requests/addToCartRequest'
 import toast from "react-hot-toast";
 import Button from "../../widgets/Button";
-import { LuArrowLeft, LuShoppingBasket } from "react-icons/lu";
+import { LuArrowLeft, LuMinus, LuPlus, LuShoppingBasket } from "react-icons/lu";
 
 function Item() {
-  const loc = useLocation();
+  // ----------------------------------------------------- utilities ---------------------------------------------
   const nav = useNavigate();
+  const loc = useLocation();
 
-  const product = loc.state?.products as
-    | ProductWithVariants
-    | undefined;
+  const product = loc.state?.products as ProductWithVariants | undefined;
 
-  const [selectedVariantId, setSelectedVariantId] =
-    React.useState(product?.product_variants[0]?.id ?? "");
+  // --------------------------------------------------------- states ------------------------------------------------
+
+  const [selectedVariantPrice, setSelectedVariantPrice] = React.useState(
+    product?.product_variants.length
+      ? Math.min(...product.product_variants.map((v) => v.price))
+      : 0,
+  );
+
+  const [quantity, setQuantity] = React.useState(1);
+
+  // ------------------------------------------------------ functions --------------------------------------------------
+
+  const addQuantity = () => {
+    setQuantity(quantity + 1);
+  };
+
+  const subQuantity = () => {
+    setQuantity(quantity - 1);
+  };
 
   if (!product) {
     return (
       <div className="p-6">
         <p>Product not found.</p>
-        <button
-          onClick={() => nav("/menu")}
-          className="mt-3 text-primary"
-        >
+        <button onClick={() => nav("/menu")} className="mt-3 text-primary">
           Back to Menu
         </button>
       </div>
     );
   }
 
-  // Sort a copy, so the original product array isn't mutated.
   const sortedVariants = [...product.product_variants].sort(
-    (a, b) => Number(a.price) - Number(b.price)
+    (a, b) => Number(a.price) - Number(b.price),
   );
 
   const selectedVariant = product.product_variants.find(
-    (v) => v.id === selectedVariantId
+    (v) => v.price === selectedVariantPrice,
   );
 
-  const price = Number(selectedVariant?.price ?? 0);
+  const price = Number(selectedVariant?.price ?? 0) * quantity;
+
+  const handleAddToCart = async () => {
+    try {
+      if (!selectedVariant) {
+        toast.error("Please select a variant.");
+        return;
+      }
+
+      console.log("Product:", product);
+      console.log("Selected variant:", selectedVariant);
+      console.log("Price:", price);
+
+      await api.addToCart({variantId: selectedVariant.id, quantity } )
+
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        `${product.name} cannot be added to cart, please try again later.`,
+      );
+    }
+  };
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 md:py-8 lg:px-10 xl:px-12">
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 md:py-8 lg:py-12 lg:px-10 xl:px-12">
       <button
         type="button"
         onClick={() => nav("/menu")}
-        className="mb-6 flex items-center gap-2 text-sm font-medium text-primary transition hover:gap-3"
+        className="mb-6 flex items-center gap-2 text-sm font-medium text-primary hover:cursor-pointer transition-all hover:gap-3"
       >
         <LuArrowLeft />
-        Back to Menu
+        <p>Back to Menu</p>
       </button>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-10 xl:gap-14">
-
         <section className="min-w-0">
           <div className="flex w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/2">
             <img
@@ -93,7 +125,7 @@ function Item() {
 
           <div className="space-y-3">
             {sortedVariants.map((v) => {
-              const isSelected = selectedVariantId === v.id;
+              const isSelected = selectedVariantPrice === v.price;
 
               return (
                 <label
@@ -112,13 +144,11 @@ function Item() {
                       name="variants"
                       value={v.id}
                       checked={isSelected}
-                      onChange={() => setSelectedVariantId(v.id)}
+                      onChange={() => setSelectedVariantPrice(v.price)}
                       className="h-4 w-4 shrink-0 accent-primary"
                     />
 
-                    <span className="font-medium">
-                      {v.label || "Standard"}
-                    </span>
+                    <span className="font-medium">{v.label || "Standard"}</span>
                   </div>
 
                   <span className="shrink-0 font-semibold">
@@ -129,12 +159,34 @@ function Item() {
             })}
           </div>
 
-          {/* Price summary */}
+          <div className="flex gap-2 justify-end mt-4">
+            <button onClick={subQuantity}>
+              <LuMinus className="w-5 h-5 hover:cursor-pointer" />
+            </button>
+
+            <input
+              type="text"
+              value={quantity}
+              className="w-12 p-2 font-semibold text-center"
+              maxLength={2}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const raw = e.target.value.replace(/[^0-9]/g, "");
+                if (raw === "") {
+                  setQuantity(0);
+                  return;
+                }
+                setQuantity(Math.min(Number(raw), 30));
+              }}
+            />
+
+            <button onClick={addQuantity}>
+              <LuPlus className="w-5 h-5 hover:cursor-pointer" />
+            </button>
+          </div>
+
           <div className="mt-6 border-t border-foreground/10 pt-5">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-sm text-foreground/60">
-                Total price
-              </span>
+              <span className="text-sm text-foreground/60">Total price</span>
 
               <span className="text-2xl font-bold text-primary sm:text-3xl">
                 ₱{price.toFixed(2)}
@@ -148,14 +200,7 @@ function Item() {
                 type="button"
                 iconRight={true}
                 onClick={() => {
-                  if (!selectedVariant) {
-                    toast.error("Please select a variant.");
-                    return;
-                  }
-
-                  console.log("Product:", product);
-                  console.log("Selected variant:", selectedVariant);
-                  console.log("Price:", price);
+                  handleAddToCart();
                 }}
               />
             </div>

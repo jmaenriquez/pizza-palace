@@ -6,7 +6,6 @@ import Fields from "../../widgets/Fields";
 import api, {
   type ProductWithVariants,
 } from "../../api/requests/productRequest";
-import type { FormLists } from "../../components/reusable/Form";
 
 import { LuSearch } from "react-icons/lu";
 import { FaPizzaSlice } from "react-icons/fa";
