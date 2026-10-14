@@ -2,6 +2,7 @@ import  express  from "express";
 import cors from 'cors'
 
 import productRoutes from './src/routes/productRoutes'
+import cartRoutes from './src/routes/cartRouter'
 
 const app = express();
 const port = 3000
@@ -13,6 +14,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(productRoutes);
+app.use(cartRoutes);
 
 
 app.get('/', (_,res) => {

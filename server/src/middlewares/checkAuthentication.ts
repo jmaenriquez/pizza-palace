@@ -20,4 +20,16 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next()
 }
 
-export default requireAdmin;
+async function authenticateUser(req:Request, res:Response, next: NextFunction){
+
+  const token = req.headers.authorization?.replace('Bearer ', "");
+  if(!token) return res.status(401).json({ error: 'No Session found.' });
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return res.status(401).json({ error: 'Invalid session.' });
+
+  res.locals.userId = user.id;
+  next();
+}
+
+export default { requireAdmin, authenticateUser };

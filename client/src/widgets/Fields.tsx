@@ -11,11 +11,16 @@ interface InputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
 interface SelectProps {
   name: string;
-  value: string | number;
-  optionsArray: string[];
+  value: string;
   placeholder?: string;
+  optionsArray: SelectOption[];
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
@@ -100,8 +105,8 @@ function Select({
         </option>
 
         {optionsArray.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>

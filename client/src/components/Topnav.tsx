@@ -13,6 +13,20 @@ interface Links {
   key: string;
 }
 
+// function CartIconWithBadge({ count }: { count: number }) {
+//   return (
+//     <div className="relative inline-flex">
+//       <LuShoppingCart className="h-6 w-6" />
+
+//       {count > 0 && (
+//         <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-background">
+//           {count}
+//         </span>
+//       )}
+//     </div>
+//   )
+// }
+
 function Topnav() {
   // ------------------------------Utilities--------------
 
@@ -83,6 +97,7 @@ function Topnav() {
                 <LuShoppingCart
                   className="w-5 h-5 cursor-pointer"
                   strokeWidth={3}
+                  onClick={() => nav('/cart')}
                 />
               </button>
 

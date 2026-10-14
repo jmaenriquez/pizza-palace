@@ -2,10 +2,11 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { type ProductWithVariants } from "../../api/requests/productRequest";
 
-import api from '../../api/requests/addToCartRequest'
+import api from '../../api/requests/cartRequest'
 import toast from "react-hot-toast";
 import Button from "../../widgets/Button";
 import { LuArrowLeft, LuMinus, LuPlus, LuShoppingBasket } from "react-icons/lu";
+import supabase from "../../config/supabase";
 
 function Item() {
   // ----------------------------------------------------- utilities ---------------------------------------------
@@ -16,10 +17,14 @@ function Item() {
 
   // --------------------------------------------------------- states ------------------------------------------------
 
-  const [selectedVariantPrice, setSelectedVariantPrice] = React.useState(
-    product?.product_variants.length
-      ? Math.min(...product.product_variants.map((v) => v.price))
-      : 0,
+  const [selectedVariantId, setSelectedVariantId] = React.useState(
+    product?.product_variants.reduce<(typeof product.product_variants)[number] | null>(
+      (lowest, variant) =>
+        !lowest || Number(variant.price) < Number(lowest.price)
+          ? variant
+          : lowest,
+      null,
+    )?.id ?? "",
   );
 
   const [quantity, setQuantity] = React.useState(1);
@@ -50,23 +55,27 @@ function Item() {
   );
 
   const selectedVariant = product.product_variants.find(
-    (v) => v.price === selectedVariantPrice,
+    (v) => v.id === selectedVariantId,
   );
 
   const price = Number(selectedVariant?.price ?? 0) * quantity;
 
   const handleAddToCart = async () => {
+
+    const {data: { session }} = await supabase.auth.getSession()
+
     try {
       if (!selectedVariant) {
         toast.error("Please select a variant.");
         return;
       }
 
-      console.log("Product:", product);
-      console.log("Selected variant:", selectedVariant);
-      console.log("Price:", price);
+      if(!session){ nav('/login'); return}
 
-      await api.addToCart({variantId: selectedVariant.id, quantity } )
+      await api.addToCart({variantId: selectedVariant.id, quantity })
+      toast.success(`${product.name} has been added to cart.`);
+
+      nav('/menu')
 
     } catch (err) {
       console.error(err);
@@ -125,7 +134,7 @@ function Item() {
 
           <div className="space-y-3">
             {sortedVariants.map((v) => {
-              const isSelected = selectedVariantPrice === v.price;
+              const isSelected = selectedVariantId === v.id;
 
               return (
                 <label
@@ -144,7 +153,7 @@ function Item() {
                       name="variants"
                       value={v.id}
                       checked={isSelected}
-                      onChange={() => setSelectedVariantPrice(v.price)}
+                      onChange={() => setSelectedVariantId(v.id)}
                       className="h-4 w-4 shrink-0 accent-primary"
                     />
 
