@@ -10,11 +10,14 @@ import checkOutRouter from './src/routes/checkOutRouter'
 
 const app = express();
 const port = Number(process.env.PORT) || 3000
+const allowedOrigin = (process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map((url) => url.trim());
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: allowedOrigin,
     
-}))
+}));
 
 app.use(express.json());
 
