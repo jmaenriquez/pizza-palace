@@ -17,7 +17,7 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (info?.role !== 'Admin') return res.status(403).json({ error: 'Admins only.' })
 
   res.locals.userId = user.id
-  next()
+  next();
 }
 
 async function authenticateUser(req:Request, res:Response, next: NextFunction){

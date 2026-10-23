@@ -20,9 +20,7 @@ async function get(req:Request, res:Response){
 
     try{
         const userId = res.locals.userId as string;
-        const search = typeof req.query.search === "string" ? req.query.search : undefined;
-
-        return(res.json(await model.getCartItems(userId,search)));
+        res.json(await model.getCartItems(userId));
 
     }catch(err){
         console.error(err);

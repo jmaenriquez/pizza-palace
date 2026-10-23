@@ -23,6 +23,8 @@ import Item from "./pages/client/Item.js";
 import Cart from "./pages/client/Cart";
 import About from "./pages/client/About.js";
 import Profile from "./pages/client/Profile.js";
+import Checkout from "./pages/client/Checkout.js";
+import Receipt from "./pages/client/Receipt.js"
 
 function App() {
   return (
@@ -46,9 +48,11 @@ function App() {
             <Route path="/about" element={<About />} />
 
             {/* Authorized User */}
-            <Route element={<AuthPath />}>
+            <Route element={<AuthPath allow="User" />}>
               <Route path="/cart" element={<Cart />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/checkout" element={<Checkout/>} />
+              <Route path="/receipt/:id" element={<Receipt/>} />
             </Route>
           </Route>
         </Route>

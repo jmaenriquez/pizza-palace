@@ -54,7 +54,6 @@ function Dashboard() {
                 }
                 to={"/menu"}
               >
-                {" "}
                 VIEW ALL <LuArrowRight />
               </NavLink>
             </div>

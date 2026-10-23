@@ -20,16 +20,13 @@ async function addToCart(item: Cart, userId: string){
 }
 
 
-async function getCartItems(userId: string, search?: string) {
-  const { data: cartItems, error: cartError } = await supabase
+async function getCartItems(userId: string, cartItemsId?: string[]) {
+
+  let query = supabase
     .from("cart")
     .select(`
       *,
-      product_variants(
-        id,
-        label,
-        price,
-        stocks,
+      product_variants(id, label,price, stocks,
         products(
           id,
           image_url,
@@ -40,6 +37,12 @@ async function getCartItems(userId: string, search?: string) {
       )
     `)
     .eq("user_id", userId);
+
+    if(cartItemsId){
+      query = query.in("id", cartItemsId);
+    }
+
+  const { data: cartItems, error: cartError } = await query
 
   if (cartError) throw cartError;
 
@@ -76,18 +79,8 @@ async function getCartItems(userId: string, search?: string) {
     };
   });
 
-  // Search by product name after fetching the cart.
-  if (!search?.trim()) return result;
-
-  const term = search.trim().toLowerCase();
-
-  return result.filter((item) =>
-    item.product_variants?.products?.name
-      ?.toLowerCase()
-      .includes(term)
-  );
+  return result;
 }
-
 
 async function updateItem(
   id: string,
