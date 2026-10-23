@@ -1,5 +1,6 @@
 import  express  from "express";
 import cors from 'cors'
+import "dotenv/config";
 
 import productRouter from './src/routes/productRouter'
 import cartRouter from './src/routes/cartRouter'
@@ -8,15 +9,19 @@ import addressRouter from './src/routes/addressRouter'
 import checkOutRouter from './src/routes/checkOutRouter'
 
 const app = express();
-const port = 3000 // replace with render's port
+const port = Number(process.env.PORT) || 3000
 
 app.use(cors({
-    origin: 'http://localhost:5173',
-    // origin: 'http://vercel_link.app'
+    origin: process.env.FRONTEND || "http://localhost:5173",
     
 }))
 
 app.use(express.json());
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 app.use(productRouter);
 app.use(cartRouter);
 app.use(userRouter);
