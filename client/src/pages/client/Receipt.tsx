@@ -13,7 +13,7 @@ import {
   LuBike,
 } from "react-icons/lu";
 import Button from "../../widgets/Button";
-import { formatDateTime } from '../../utils/formatDateTime'
+import { formatDateTime } from "../../utils/formatDateTime";
 import toast from "react-hot-toast";
 
 interface User {
@@ -110,6 +110,20 @@ function Receipt() {
     }
   };
 
+  const address = orderDetails?.address
+
+  const addressLine = address ? [
+      address.houseNum_roomNum,
+      address.bldg_name,
+      address.street_purok,
+      address.barangay,
+      address.city,
+      address.province,
+    ]
+      .filter(Boolean)
+      .join(", ")
+  : "";
+
   // --------------------------------------------- useEffect -----------------------------------------------------
 
   React.useEffect(() => {
@@ -120,7 +134,7 @@ function Receipt() {
     getLoggedInUser().catch((err) => console.error(err));
   }, []);
 
-  if (!orderDetails) return;
+  if (!orderDetails || !orderDetails.address) return;
   if (!userInfos) return;
 
   return (
@@ -154,27 +168,39 @@ function Receipt() {
           </div>
           <div>
             <p className="text-xs text-foreground/50">Order status</p>
-              {
-                orderDetails.order_status === "Picked Up" || orderDetails.order_status === "Delivered" ?
-                <span className="mt-1 inline-block rounded-full bg-tertiary/10 px-3 py-1 text-xs font-semibold text-tertiary"> Orders Complete, {formatDateTime(orderDetails.completed_order_date)} </span>
-                :
-              <span className={
-                `mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold
-                ${orderDetails.order_status === "Pending" ? 'text-primary bg-primary/10' :   
-                  orderDetails.order_status === "Processing" ? 'text-secondary bg-secondary/10' : 
-                  orderDetails.order_status === "Ready" || orderDetails.order_status === "On Delivery" ? "text-tertiary bg-tertiary/10" : "text-gray-400 bg-foreground/10"
-                }
-                `
-                }>
-                  {orderDetails.order_status}
+            {orderDetails.order_status === "Picked Up" ||
+            orderDetails.order_status === "Delivered" ? (
+              <span className="mt-1 inline-block rounded-full bg-tertiary/10 px-3 py-1 text-xs font-semibold text-tertiary">
+                {" "}
+                Orders Complete,{" "}
+                {formatDateTime(orderDetails.completed_order_date)}{" "}
               </span>
-              }
+            ) : (
+              <span
+                className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold
+                ${
+                  orderDetails.order_status === "Pending"
+                    ? "text-primary bg-primary/10"
+                    : orderDetails.order_status === "Processing"
+                      ? "text-secondary bg-secondary/10"
+                      : orderDetails.order_status === "Ready" ||
+                          orderDetails.order_status === "On Delivery"
+                        ? "text-tertiary bg-tertiary/10"
+                        : "text-gray-400 bg-foreground/10"
+                }
+                `}
+              >
+                {orderDetails.order_status}
+              </span>
+            )}
           </div>
           <div className="sm:text-right">
             <p className="text-xs text-foreground/50">Payment status</p>
-            <span className={`mt-1 inline-block rounded-full  px-3 py-1 text-xs font-semibold
-              ${orderDetails.payment_status === "Pending Payment" ? "text-foreground/70 bg-foreground/5" : "text-tertiary bg-tertiary/10" }
-              `}>
+            <span
+              className={`mt-1 inline-block rounded-full  px-3 py-1 text-xs font-semibold
+              ${orderDetails.payment_status === "Pending Payment" ? "text-foreground/70 bg-foreground/5" : "text-tertiary bg-tertiary/10"}
+              `}
+            >
               {orderDetails.payment_status}
             </span>
           </div>
@@ -268,8 +294,7 @@ function Receipt() {
               <div>
                 <p className="text-sm font-semibold">Delivery address</p>
                 <p className="mt-0.5 text-sm text-foreground/60">
-                  Unit 4B, Sample Building, Rizal Street, Brgy. Pagpartian,
-                  Vigan City, Ilocos Sur
+                  {addressLine}
                 </p>
               </div>
             </div>
