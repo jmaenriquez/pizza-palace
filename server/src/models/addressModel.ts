@@ -11,7 +11,7 @@ interface Address {
 }
 
 async function createAddress(userId: string, address: Address) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("address")
     .insert({
       name: address.name,
@@ -23,9 +23,12 @@ async function createAddress(userId: string, address: Address) {
       province: address.province,
       user_id: userId,
     })
+    .select("*")
     .single();
 
   if (error) throw error;
+
+  return data
 }
 
 async function getAddress(userId: string) {

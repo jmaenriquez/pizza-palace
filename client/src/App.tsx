@@ -29,7 +29,7 @@ import Receipt from "./pages/client/Receipt.js"
 function App() {
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster position="bottom-right" />
 
       <Routes>
 

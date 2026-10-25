@@ -1,7 +1,7 @@
 import supabase from "../../config/supabase";
 import { BASE_URL } from "../authFetch";
 
-interface Address {
+export interface Address {
   name?: string;
   bldg_name?: string;
   houseNum_roomNum?: string;

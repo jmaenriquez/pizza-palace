@@ -36,6 +36,7 @@ interface FormProps {
     lists: FormLists,
   ) => void | Promise<void>;
   selectedList?: FormLists | null;
+  toastMessage: string;
 }
 
 const buildItem = (fields: FieldValues[], source?: FormItem | null) =>
@@ -66,7 +67,8 @@ function Form({
   onClose,
   onOutsideClick,
   onSubmit,
-  selectedList
+  selectedList,
+  toastMessage
 }: FormProps) {
 
   // ----------------------------------- States -------------------------------------------
@@ -95,11 +97,7 @@ function Form({
   const submit = async () => {
     try {
       await onSubmit(item, file, lists);
-      toast.success(
-        selectedItem
-        ? "Record edited successfully."
-        : "Record added successfully.",
-      );
+      toast.success(toastMessage);
       onClose();
     } catch (err) {
       console.error(err);

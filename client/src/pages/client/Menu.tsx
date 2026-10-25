@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import Fields from "../../widgets/Fields";
+import Skeleton from "../../components/reusable/SkeletonLoad";
 
 import api, {
   type ProductWithVariants,
@@ -9,6 +10,7 @@ import api, {
 
 import { LuSearch } from "react-icons/lu";
 import { FaPizzaSlice } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 interface FilterValues {
   name: string;
@@ -32,6 +34,7 @@ function Menu() {
   // -----------------------------------------states--------------------------------------
 
   const [products, setProducts] = React.useState<ProductWithVariants[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [filterValue, setFilterValue] = React.useState("");
   const [search, setSearch] = React.useState("");
   // -----------------------------------------functions------------------------------------
@@ -40,9 +43,16 @@ function Menu() {
     filter.find((f) => f.value === filterValue)?.name ?? "All";
 
   const fetchData = async () => {
-    setProducts(
-      await api.getRequest({ category: filterValue, search: search }),
-    );
+    try {
+      setProducts(
+        await api.getRequest({ category: filterValue, search: search }),
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load products.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const searchOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +75,7 @@ function Menu() {
 
   return (
     <div className="flex justify-center">
-      <div className="p-4 md:p-12">
+      <div className="p-4 w-full md:p-12">
         {/* Top Section */}
         <div className="flex flex-col gap-2">
           <h1 className="text-foreground text-xl md:text-2xl lg:text-3xl font-semibold">
@@ -114,11 +124,17 @@ function Menu() {
             </div>
           </div>
         </div>
-        {products.length === 0 ? (
+        {isLoading ? (
+          <div className="py-8 md:py-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-2 gap-y-6 lg:gap-x-4 lg:gap-y-12">
+            {Array.from({ length: 12 }, (_, i) => (
+              <Skeleton.ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : products.length === 0 ? (
           <div className="mt-12 md:mt-0 h-full flex-1 flex flex-col items-center justify-center gap-4 text-gray-300">
             <FaPizzaSlice className="w-12 h-12" />
             <p className="text-sm text-center">
-              The Pizzas are still being processed...
+              There's no pizzas like that here...
             </p>
           </div>
         ) : (

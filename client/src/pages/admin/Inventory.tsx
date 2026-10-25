@@ -227,6 +227,7 @@ function Inventory() {
           isOpen={isFormOpen}
           onClose={closeForm}
           onOutsideClick={closeForm}
+          toastMessage={selectedItem ? `Product edited successfully.` : `Product added to menu.` }
           fields={[
             {
               fieldtype: "file",

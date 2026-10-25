@@ -7,6 +7,26 @@ interface Cart {
 
 async function addToCart(item: Cart, userId: string){
 
+    const { data: existing, error: cartError } = await supabase
+    .from("cart")
+    .select("id, quantity, product_variants(product_id)")
+    .eq("user_id", userId)
+    .eq("product_variant_id", item.variantId)
+    .maybeSingle();
+
+    if(cartError) throw cartError
+
+    if(existing){
+
+      const { error: updateError } = await supabase
+      .from("cart")
+      .update({ quantity: Math.min(existing.quantity + item.quantity, 30) })
+      .eq("id", existing.id)
+
+      if(updateError) throw updateError
+      return { updated: true };
+    }
+
     const { error } = await supabase
     .from("cart")
     .insert({

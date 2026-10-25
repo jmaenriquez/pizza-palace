@@ -3,12 +3,19 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { type ProductWithVariants } from "../../api/requests/productRequest";
 
 import api from "../../api/requests/cartRequest";
-import productAPI from '../../api/requests/productRequest'
+import productAPI from "../../api/requests/productRequest";
 import supabase from "../../config/supabase";
 
 import toast from "react-hot-toast";
 import Button from "../../widgets/Button";
-import { LuArrowLeft, LuArrowRight, LuMinus, LuPlus, LuShoppingBasket } from "react-icons/lu";
+import Recommended from "../../components/reusable/Recommended";
+import {
+  LuArrowLeft,
+  LuArrowRight,
+  LuMinus,
+  LuPlus,
+  LuShoppingBasket,
+} from "react-icons/lu";
 
 function Item() {
   // ----------------------------------------------------- utilities ---------------------------------------------
@@ -19,59 +26,21 @@ function Item() {
 
   // --------------------------------------------------------- states ------------------------------------------------
 
-  const [selectedVariantId, setSelectedVariantId] = React.useState(
-    product?.product_variants.reduce<
-      (typeof product.product_variants)[number] | null
-    >(
-      (lowest, variant) =>
-        !lowest || Number(variant.price) < Number(lowest.price)
-          ? variant
-          : lowest,
-      null,
-    )?.id ?? "",
-  );
+  const [selectedVariantId, setSelectedVariantId] = React.useState<
+    string | null
+  >(null);
 
   const [quantity, setQuantity] = React.useState(1);
-
-  const [recommended, setRecommended] = React.useState<ProductWithVariants[]>(
-    [],
-  );
 
   // ------------------------------------------------------ functions --------------------------------------------------
 
   const addQuantity = () => {
-    setQuantity(quantity + 1);
+    setQuantity((q) => Math.min(50, q + 1));
   };
 
   const subQuantity = () => {
-    setQuantity(quantity - 1);
+    setQuantity((q) => Math.max(1, q - 1));
   };
-
-  const fetchRecommended = async () => {
-    setRecommended(await productAPI.getRequest());
-  };
-
-  const onItemClick = (p: ProductWithVariants) => {
-    nav(`/menu/view/${p.id}`, {
-      state: {
-        products: p,
-      },
-    });
-  };
-
-  function shuffle<T>(items: T[]): T[] {
-    const a = [...items];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j]!, a[i]!];
-    }
-    return a;
-  }
-
-  const picks = React.useMemo(
-    () => shuffle(recommended).slice(0, 6),
-    [recommended],
-  );
 
   if (!product) {
     return (
@@ -88,9 +57,8 @@ function Item() {
     (a, b) => Number(a.price) - Number(b.price),
   );
 
-  const selectedVariant = product.product_variants.find(
-    (v) => v.id === selectedVariantId,
-  );
+  const selectedVariant =
+    sortedVariants.find((v) => v.id === selectedVariantId) ?? sortedVariants[0];
 
   const price = Number(selectedVariant?.price ?? 0) * quantity;
 
@@ -110,8 +78,8 @@ function Item() {
         return;
       }
 
-      await api.addToCart({ variantId: selectedVariant.id, quantity });
-      toast.success(`${product.name} has been added to cart.`);
+      const result = await api.addToCart({ variantId: selectedVariant.id, quantity });
+      toast.success( result.updated ? `${product.name} has been updated.` : `${product.name} has been added to cart.`);
     } catch (err) {
       console.error(err);
       toast.error(
@@ -121,11 +89,11 @@ function Item() {
   };
 
   // ---------------------------------------------- useEffect ----------------------------------------------------
-
   React.useEffect(() => {
-      fetchRecommended().catch((err) => console.error(err));
-    }, []);
-
+    setSelectedVariantId(null);
+    setQuantity(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [product?.id]);
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 md:py-8 lg:py-12 lg:px-10 xl:px-12">
@@ -176,7 +144,7 @@ function Item() {
 
           <div className="space-y-3">
             {sortedVariants.map((v) => {
-              const isSelected = selectedVariantId === v.id;
+              const isSelected = selectedVariant.id === v.id;
 
               return (
                 <label
@@ -261,51 +229,7 @@ function Item() {
 
       {/* Recommendations */}
       <div className="mt-auto pt-20">
-        <h1 className="text-lg md:text-xl font-semibold flex justify-between items-center">
-          Recommended{" "}
-          <NavLink
-            className="flex items-center text-sm gap-4 text-gray-400 hover:text-primary transition-colors delay-50"
-            to={'/menu'}
-          >
-            VIEW ALL <LuArrowRight />
-          </NavLink>
-        </h1>
-
-        {/* card container */}
-        <div className="py-8 md:py-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-2 gap-y-6 lg:gap-x-4 lg:gap-y-12">
-          {picks.slice(0, 6).map((item) => {
-            const prices = item.product_variants.map((v) => v.price);
-            const lowestPrice = Math.min(...prices);
-            return (
-              // Cards
-              <div
-                key={item.id}
-                onClick={() => onItemClick(item)}
-                className="flex flex-col overflow-hidden border border-foreground/20 rounded-lg shadow-md/40
-             hover:border-primary hover:cursor-pointer hover:scale-102 transition-all ease-in-out duration-100"
-              >
-                <div className="aspect-square shrink-0 w-full overflow-hidden">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex-1 p-4 flex flex-col gap-2">
-                  <h1 className="text-sm font-semibold text-foreground leading-6 line-clamp-2">
-                    {item.name}
-                  </h1>
-
-                  <h3 className="mt-auto pt-2 text-base font-semibold text-primary">
-                    ₱{lowestPrice}
-                  </h3>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div></div>
+        <Recommended />
       </div>
     </main>
   );

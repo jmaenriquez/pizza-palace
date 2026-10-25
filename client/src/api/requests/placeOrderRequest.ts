@@ -32,6 +32,13 @@ async function placeOrderRequest(order: OrderDetails){
 
     if(!response.ok){
         const data = await response.json()
+
+        if (data.errors) {
+        throw Object.assign(new Error("Validation failed"), {
+            errors: data.errors as string[],
+        });
+    }
+
         throw new Error(data.error ?? "Failed to place order" );
     }
 

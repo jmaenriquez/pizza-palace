@@ -21,11 +21,14 @@ import {
 } from "react-icons/lu";
 
 import api from "../../api/requests/placeOrderRequest";
+import addressAPI from "../../api/requests/addressRequest";
+import CurrentUser from "../../api/requests/userRequest";
+import CurrentUserAddress from "../../api/requests/addressRequest";
+
 import Button from "../../widgets/Button";
 import OptionCard from "../../widgets/OptionsCard";
 import Section from "../../widgets/Sections";
-import CurrentUser from "../../api/requests/userRequest";
-import CurrentUserAddress from "../../api/requests/addressRequest";
+import Form, { type FormItem } from "../../components/reusable/Form";
 
 // ------------------------------------- types -------------------------------------
 
@@ -33,7 +36,6 @@ type DeliveryMethod = "pickup" | "deliver";
 type PaymentMethod = "Cash" | "Card" | "Bank" | "Gcash";
 type OrderTiming = "asap" | "schedule";
 
-//to delete
 interface OrderItem {
   id: string;
   name: string;
@@ -186,6 +188,8 @@ function Checkout() {
   const [timing, setTiming] = React.useState<OrderTiming>("asap");
   const [promoApplied, setPromoApplied] = React.useState(false);
 
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
+
   const items: OrderItem[] = checkedOutItems.map((i) => ({
     id: i.id,
     name: i.product_variants.products.name,
@@ -199,7 +203,7 @@ function Checkout() {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  // Demo-only discount to preview the promo-code layout.
+
   const discount = promoApplied ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
   const deliveryFee = delivery === "deliver" ? DELIVERY_FEE : 0;
   const total = Math.max(0, subtotal + deliveryFee - discount);
@@ -221,11 +225,6 @@ function Checkout() {
   };
 
   const placeOrder = async () => {
-    if (timing === "schedule" && (!scheduledDate || !scheduledTime)) {
-      toast.error("Please choose your preferred date and time.");
-      return;
-    }
-
     try {
       const { orderId } = await api.placeOrderRequest({
         cartItemsId: items.map((i) => i.id),
@@ -243,7 +242,14 @@ function Checkout() {
       nav(`/receipt/${orderId}`, { replace: true });
     } catch (err) {
       console.error(err);
-      toast.error("Cannot proceed to place order, try again later.");
+
+      const errors = (err as { errors?: string[] }).errors;
+
+      if (errors) {
+        errors.forEach((msg) => toast.error(msg));
+      } else {
+        toast.error("Cannot proceed to place order, try again later.");
+      }
     }
   };
 
@@ -270,6 +276,33 @@ function Checkout() {
       toast.error("Failed to get User Address.");
     }
   };
+
+  const closeForm = () => {
+    setIsFormOpen(false)
+  }
+
+  const todayStr = React.useMemo(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
+
+  const handleAddressSubmit = async (item: FormItem) => {
+    try{
+      await addressAPI.createAddress({
+        name: item.name,
+        bldg_name: item.bldg_name,
+        houseNum_roomNum: item.houseNum_roomNum,
+        street_purok: item.street_purok,
+        barangay: item.barangay,
+        city: item.city,
+        province: item.province,
+      })
+      const addresses = await addressAPI.getAddress()
+      setUserAddress(addresses)
+    }catch(err){
+      console.error(err);
+      toast.error("Failed to create your address");
+    }
+  }
 
   //   ---------------------------------------------------- useEffect ----------------------------------
 
@@ -376,23 +409,21 @@ function Checkout() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {
-                  userAddress.map((a) => {
-                    const addressLine = a.bldg_name;
-                    return (
-                      <OptionCard
-                        key={a.id}
-                        selected={address === a.id}
-                        title={a.name}
-                        description={addressLine}
-                        onSelect={() => setAddress(a.id!)}
-                      />
-                    );
-                  })
-                }
+                {userAddress.map((a) => {
+                  const addressLine = [a.houseNum_roomNum, a.bldg_name, a.street_purok, a.barangay, a.city, a.province].filter(Boolean).join(", ");
+                  return (
+                    <OptionCard
+                      key={a.id}
+                      selected={address === a.id}
+                      title={a.name}
+                      description={addressLine}
+                      onSelect={() => setAddress(a.id!)}
+                    />
+                  );
+                })}
 
                 <div
-                  onClick={() => console.log("Add address is clicked")}
+                  onClick={() => setIsFormOpen(true)}
                   className="p-4 border border-dashed rounded-lg flex gap-4 items-center text-gray-400 hover:bg-foreground/10 hover:cursor-pointer"
                 >
                   <div className="p-4 border border-dashed">
@@ -401,6 +432,60 @@ function Checkout() {
 
                   <p className="text-sm">Add Address</p>
                 </div>
+
+                <Form
+                  addTitle="Input Address"
+                  editTitle={`Edit Address`}
+                  isOpen={isFormOpen}
+                  onClose={closeForm}
+                  onOutsideClick={closeForm}
+                  toastMessage={"Address successfully created!"}
+                  fields={[
+                    {
+                      fieldtype: "input",
+                      name: "name",
+                      type: "text",
+                      placeholder: "Name (e.g. Work, School, Home)",
+                    },
+                    {
+                      fieldtype: "input",
+                      name: "bldg_name",
+                      type: "text",
+                      placeholder: "Bldg. Name",
+                    },
+                    {
+                      fieldtype: "input",
+                      name: "houseNum_roomNum",
+                      type: "text",
+                      placeholder: "House/Room Number",
+                    },
+                    {
+                      fieldtype: "input",
+                      name: "street_purok",
+                      type: "text",
+                      placeholder: "Street/Purok",
+                    },
+                    {
+                      fieldtype: "input",
+                      name: "barangay",
+                      type: "text",
+                      placeholder: "Barangay",
+                    },
+                    {
+                      fieldtype: "input",
+                      name: "city",
+                      type: "text",
+                      placeholder: "City",
+                    },
+                    {
+                      fieldtype: "input",
+                      name: "province",
+                      type: "text",
+                      placeholder: "Province",
+                    },
+                  ]}
+                  onSubmit={handleAddressSubmit}
+                />
               </div>
             )}
 
@@ -438,6 +523,7 @@ function Checkout() {
                     <input
                       id="scheduledDate"
                       type="date"
+                      min={todayStr}
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
                       className={inputClassName}

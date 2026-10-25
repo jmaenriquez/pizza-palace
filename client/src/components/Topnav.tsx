@@ -1,31 +1,19 @@
 import React from "react";
-import { useAuth } from "../context/AuthContext";
-
 import { LuBell, LuLogOut, LuShoppingCart, LuUserRound } from "react-icons/lu";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
+import api from '../api/requests/cartRequest';
+import { useAuth } from "../context/AuthContext";
+
 import Button from "../widgets/Button";
 import supabase from "../config/supabase";
+import toast from "react-hot-toast";
 
 interface Links {
   name: string;
   to: string;
   key: string;
 }
-
-// function CartIconWithBadge({ count }: { count: number }) {
-//   return (
-//     <div className="relative inline-flex">
-//       <LuShoppingCart className="h-6 w-6" />
-
-//       {count > 0 && (
-//         <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-background">
-//           {count}
-//         </span>
-//       )}
-//     </div>
-//   )
-// }
 
 function Topnav() {
   // ------------------------------Utilities--------------
@@ -48,6 +36,7 @@ function Topnav() {
   const [scrollY, setScrollY] = React.useState(0);
   const isSolid = !hasHero || scrollY > 50;
   const [isUserOpen, setIsUserOpen] = React.useState(false);
+  const [cart, setCart] = React.useState<string[]>([]);
 
   // --------------------------------useEffects--------------------------
 
@@ -57,6 +46,19 @@ function Topnav() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
+
+  React.useEffect(() => {
+    async function getCart(){
+      try{
+        const data = await api.getCartItems();
+        setCart(data);
+      }catch(err){
+        console.error(err);
+      }
+    }
+
+    getCart().catch((err) => console.error(err));
+  },[cart])
 
   return (
     <div
@@ -93,22 +95,27 @@ function Topnav() {
                 <LuBell className="w-5 h-5 cursor-pointer" strokeWidth={3} />
               </button>
 
-              <button>
+              <button className="relative">
                 <LuShoppingCart
                   className="w-5 h-5 cursor-pointer"
                   strokeWidth={3}
                   onClick={() => nav('/cart')}
                 />
+
+                <span className={`${cart.length=== 0 ? "hidden" : ""}  absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-background`}>
+                    {cart.length}
+                </span>
               </button>
 
-              <button>
+              <button className="hidden md:inline">
                 <LuUserRound
-                  className="hidden md:block w-5 h-5 cursor-pointer"
+                  className="w-5 h-5 cursor-pointer"
                   strokeWidth={3}
                   onClick={() =>
                     !isUserOpen ? setIsUserOpen(true) : setIsUserOpen(false)
                   }
                 />
+
               </button>
 
               {isUserOpen && (
