@@ -6,6 +6,15 @@ interface Items {
   quantity: number;
 }
 
+type OrderStatus =
+  | "Pending"
+  | "Preparing"
+  | "Ready"
+  | "Out for Delivery"
+  | "Delivered"
+  | "Picked Up"
+  | "Canceled";
+
 interface OrderDetails {
   cartItemsId: string[];
   addressId?: string | null;
@@ -78,6 +87,8 @@ async function placeOrder(order: OrderDetails, userId: string) {
 const ORDER_SELECT =
   "*, address(*), order_items(*, product_variants(id, label, price, products(id, image_url, name, description, category)))";
 
+  const ADMIN_ORDER_SELECT = `${ORDER_SELECT}, user_infos(fname, lname)`;
+
 
 async function getOrder(userId: string, id?: string) {
 
@@ -106,4 +117,26 @@ async function getAllOrders(userId: string) {
   return data;
 }
 
-export default { placeOrder, getOrder, getAllOrders };
+async function getAllUserOrders() {
+
+  const { data, error } = await supabase
+    .from("order")
+    .select(ADMIN_ORDER_SELECT);
+
+  if (error) throw error;
+
+  return data;
+}
+
+async function updateUserOrderStatus(id: string, order_status: OrderStatus ){
+
+  const { error } = await supabase
+  .from("order")
+  .update({ order_status })
+  .eq("id", id)
+  .single()
+
+  if(error) throw error
+}
+
+export default { placeOrder, getOrder, getAllOrders, getAllUserOrders, updateUserOrderStatus };

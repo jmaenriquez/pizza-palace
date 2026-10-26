@@ -48,6 +48,7 @@ interface OrderItem {
 }
 
 interface OrderReceipt {
+  id: string;
   total_amount: number;
   subtotal: number;
   discount: number;
@@ -86,6 +87,7 @@ function Receipt() {
     null,
   );
   const [userInfos, setUserInfo] = React.useState<CurrentUser | null>(null);
+  const [notFound, setNotFound] = React.useState(false);
 
   // --------------------------------------------- functions ---------------------------------------------------
   const fetchData = async () => {
@@ -97,6 +99,7 @@ function Receipt() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to get specific order receipt.");
+      setNotFound(true);
     }
   };
 
@@ -107,22 +110,31 @@ function Receipt() {
     } catch (err) {
       console.error(err);
       toast.error("Cannot get logged in user");
+    } finally {
+      if (notFound) {
+        return (
+          <main className="mx-auto max-w-2xl px-4 py-12 text-center text-sm text-foreground/60">
+            We couldn't find this receipt.
+          </main>
+        );
+      }
     }
   };
 
-  const address = orderDetails?.address
+  const address = orderDetails?.address;
 
-  const addressLine = address ? [
-      address.houseNum_roomNum,
-      address.bldg_name,
-      address.street_purok,
-      address.barangay,
-      address.city,
-      address.province,
-    ]
-      .filter(Boolean)
-      .join(", ")
-  : "";
+  const addressLine = address
+    ? [
+        address.houseNum_roomNum,
+        address.bldg_name,
+        address.street_purok,
+        address.barangay,
+        address.city,
+        address.province,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : "";
 
   // --------------------------------------------- useEffect -----------------------------------------------------
 
@@ -134,6 +146,7 @@ function Receipt() {
     getLoggedInUser().catch((err) => console.error(err));
   }, []);
 
+  if (!id) return toast.error("Invalid receipt link.");
   if (!orderDetails) return;
   if (!userInfos) return;
 
@@ -158,7 +171,9 @@ function Receipt() {
         <div className="grid gap-4 border-b border-dashed border-foreground/20 p-5 sm:grid-cols-2 sm:p-6">
           <div>
             <p className="text-xs text-foreground/50">Order number</p>
-            <p className="mt-0.5 text-sm font-semibold">{id}</p>
+            <p className="mt-0.5 text-sm font-semibold">
+              #{orderDetails.id.slice(0, 8).toUpperCase()}
+            </p>
           </div>
           <div className="sm:text-right">
             <p className="text-xs text-foreground/50">Placed on</p>

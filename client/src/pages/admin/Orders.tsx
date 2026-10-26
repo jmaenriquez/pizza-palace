@@ -1,16 +1,13 @@
 import React from "react";
-import type { IconType } from "react-icons";
+import toast from "react-hot-toast";
+import { LuSearch } from "react-icons/lu";
+
+import api from "../../api/requests/placeOrderRequest";
+import { useHeaderData } from "../../utils/hooks/useHeaderData";
+
 import Fields from "../../widgets/Fields";
 import Button from "../../widgets/Button";
-import { useHeaderData } from "../../utils/hooks/useHeaderData";
-import {
-  LuSearch,
-  LuClock,
-  LuPackage,
-  LuTruck,
-  LuCircleCheck,
-  LuCircleX,
-} from "react-icons/lu";
+import Skeleton from "../../components/reusable/SkeletonLoad";
 
 type OrderStatus =
   | "Pending"
@@ -21,187 +18,255 @@ type OrderStatus =
   | "Picked Up"
   | "Canceled";
 
-interface Order {
+interface OrderItem {
   id: string;
-  name: string;
-  item: string;
-  total: string;
-  status: OrderStatus;
-  actions: string;
+  quantity: number;
+  product_variants: {
+    products: { name: string };
+  };
 }
 
-const orderItems: Order[] = [
-  { id: "ODR-111", name: "John Doe", item: "Emperor Supreme", total: "₱304", status: "Preparing", actions: "View" },
-  { id: "ODR-112", name: "Kelly Clarkson", item: "Emperor Supreme", total: "₱304", status: "Out for Delivery", actions: "View" },
-  { id: "ODR-113", name: "Erick Lee", item: "Emperor Supreme", total: "₱304", status: "Delivered", actions: "View" },
-  { id: "ODR-114", name: "Jarred Simpson", item: "Emperor Supreme", total: "₱304", status: "Picked Up", actions: "View" },
-  { id: "ODR-115", name: "John Doe", item: "Emperor Supreme", total: "₱304", status: "Pending", actions: "View" },
-  { id: "ODR-116", name: "John Doe", item: "Emperor Supreme", total: "₱304", status: "Canceled", actions: "View" },
-  { id: "ODR-117", name: "Maria Santos", item: "Emperor Supreme", total: "₱304", status: "Ready", actions: "View" },
+interface OrderDetails {
+  id: string;
+  order_status: OrderStatus;
+  order_timing: "asap" | "schedule";
+  delivery_method: "pickup" | "deliver";
+  total_amount: number;
+  ordered_date: string;
+  user_infos: {
+    fname: string;
+    lname: string;
+  }
+  order_items: OrderItem[];
+}
+
+// Badge colors per status (full class names so Tailwind can detect them)
+const statusStyles: Record<OrderStatus, { badge: string; dot: string }> = {
+  Pending: { badge: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
+  Preparing: { badge: "bg-orange-50 text-orange-700", dot: "bg-orange-500" },
+  Ready: { badge: "bg-blue-50 text-blue-700", dot: "bg-blue-500" },
+  "Out for Delivery": {
+    badge: "bg-indigo-50 text-indigo-700",
+    dot: "bg-indigo-500",
+  },
+  Delivered: { badge: "bg-green-50 text-green-700", dot: "bg-green-600" },
+  "Picked Up": { badge: "bg-teal-50 text-teal-700", dot: "bg-teal-600" },
+  Canceled: { badge: "bg-red-50 text-red-700", dot: "bg-red-500" },
+};
+
+const fallbackStyle = { badge: "bg-gray-100 text-gray-600", dot: "bg-gray-400" };
+
+const allStatuses = Object.keys(statusStyles) as OrderStatus[];
+
+// Orders still in progress; finished ones only show under their own filter
+const activeStatuses: OrderStatus[] = [
+  "Pending",
+  "Preparing",
+  "Ready",
+  "Out for Delivery",
 ];
 
-const statusColumns: { name: OrderStatus; color: string; icon: IconType }[] = [
-  { name: "Pending", color: "bg-amber-500", icon: LuClock },
-  { name: "Preparing", color: "bg-orange-500", icon: LuPackage },
-  { name: "Ready", color: "bg-blue-500", icon: LuCircleCheck },
-  { name: "Out for Delivery", color: "bg-indigo-500", icon: LuTruck },
-  { name: "Delivered", color: "bg-green-600", icon: LuCircleCheck },
-  { name: "Picked Up", color: "bg-teal-600", icon: LuCircleCheck },
-  { name: "Canceled", color: "bg-red-500", icon: LuCircleX },
-];
+type Filter = "Active" | OrderStatus;
+const filterOpt: Filter[] = ["Active", ...allStatuses];
 
-type Filter = "All" | OrderStatus;
+const PAGE_SIZE = 10;
 
-const filterOpt: Filter[] = ["All", ...statusColumns.map((column) => column.name)];
+// One item shows its name, several items show "Multiple items"
+const getItemLabel = (items: OrderItem[]) => {
+  if (items.length === 0) return "No items";
+  if (items.length === 1) {
+    return items[0]?.product_variants.products.name ?? "1 item";
+  }
+  return "Multiple items";
+};
 
 function Orders() {
-  const [orders] = React.useState<Order[]>(orderItems);
+  const [orders, setOrders] = React.useState<OrderDetails[]>([]);
   const [search, setSearch] = React.useState("");
-  const [filter, setFilter] = React.useState<Filter>("All");
+  const [selectedFilter, setSelectedFilter] = React.useState<Filter>("Active");
+  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  useHeaderData("Order Management", "Track and manage your Pizza Palace orders.");
+  useHeaderData(
+    "Order Management",
+    "Track and manage your Pizza Palace orders.",
+  );
 
-  // Search only (used for the chip counts so they match what the board shows)
-  const searchedOrders = orders.filter((order) => {
-    const searchTerm = search.toLowerCase();
+  // ------------------------------- data -------------------------------
 
-    return (
-      order.id.toLowerCase().includes(searchTerm) ||
-      order.name.toLowerCase().includes(searchTerm) ||
-      order.item.toLowerCase().includes(searchTerm)
-    );
-  });
+  React.useEffect(() => {
+    async function fetchOrders() {
+      try {
+        setOrders(await api.getAllUserOrder());
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load orders.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-  const getOrdersByStatus = (status: OrderStatus) =>
-    searchedOrders.filter((order) => order.status === status);
+    fetchOrders();
+  }, []);
+
+  // ------------------------------- filtering -------------------------------
+
+  // "#a1b2c3d4" and "a1b2c3d4" both work
+  const searchTerm = search.trim().toLowerCase().replace(/^#/, "");
+
+  const searchedOrders = orders.filter(
+    (o) =>
+      searchTerm === "" ||
+      o.id.toLowerCase().includes(searchTerm) ||
+      o.order_items.some((i) =>
+        i.product_variants.products.name.toLowerCase().includes(searchTerm),
+      ),
+  );
+
+  const matchesFilter = (order: OrderDetails, option: Filter) => {
+    if (option === "Active") {
+      // While searching, look through finished orders too
+      return searchTerm !== "" || activeStatuses.includes(order.order_status);
+    }
+    return order.order_status === option;
+  };
+
+  const filteredOrders = searchedOrders.filter((o) =>
+    matchesFilter(o, selectedFilter),
+  );
+  const visibleOrders = filteredOrders.slice(0, visibleCount);
+
+  const handleFilter = (option: Filter) => {
+    setSelectedFilter(option);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  // ------------------------------- render -------------------------------
 
   return (
-    <div className="w-full min-w-0 bg-white px-4 pb-12 sm:px-6 xl:px-12">
-      {/* Header */}
+    <div className="w-full min-w-0 px-4 pb-12 sm:px-6 xl:px-12">
       <div className="mb-6 flex flex-col gap-4">
-        {/* Search */}
         <Fields.Input
           icon={LuSearch}
           name="search"
           type="text"
           value={search}
-          placeholder="Search order number, customer name, or item..."
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSearch(e.target.value)
-          }
+          placeholder="Search order number or item..."
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setSearch(e.target.value);
+            setVisibleCount(PAGE_SIZE);
+          }}
         />
 
-        {/* Status filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          {filterOpt.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setFilter(option)}
-              className={`rounded-xl border px-4 py-2 text-sm transition-colors ${
-                filter === option
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-300 bg-white text-gray-500 hover:border-primary hover:text-primary"
-              }`}
-            >
-              {option}
-              {option !== "All" && (
-                <span className="ml-2">
-                  {searchedOrders.filter((order) => order.status === option).length}
-                </span>
-              )}
-            </button>
-          ))}
+        {/* Select dropdown: mobile and tablet */}
+        <div className="xl:hidden w-40">
+          <Fields.Select
+            name="filter"
+            value={selectedFilter}
+            optionsArray={filterOpt}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              handleFilter(e.target.value as Filter)
+            }
+          />
+        </div>
+
+        {/* Chips: desktop only */}
+        <div className="hidden flex-wrap items-center gap-2 xl:flex">
+          {filterOpt.map((option) => {
+            const count = searchedOrders.filter((order) =>
+              matchesFilter(order, option),
+            ).length;
+
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleFilter(option)}
+                className={`rounded-xl border px-4 py-2 text-sm transition-colors ${
+                  selectedFilter === option
+                    ? "border-primary bg-primary text-white"
+                    : "border-gray-300 text-gray-500 hover:border-primary hover:text-primary"
+                }`}
+              >
+                {option}
+                <span className="ml-2">{count}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Kanban board */}
-      <div className="w-full overflow-x-auto scrollbar-none pb-4">
-        <div className="flex min-h-100 items-start gap-4">
-          {statusColumns
-            .filter((column) => filter === "All" || column.name === filter)
-            .map((column) => {
-              const columnOrders = getOrdersByStatus(column.name);
-              const StatusIcon = column.icon;
+      {/* Order list */}
+      {isLoading ? (
+        <Skeleton.OrderCardSkeleton />
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {visibleOrders.map((order) => {
+            const style = statusStyles[order.order_status] ?? fallbackStyle;
 
-              return (
-                <section
-                  key={column.name}
-                  className="w-70 min-w-70 self-stretch rounded-xl border border-gray-200 bg-white p-3"
-                >
-                  {/* Column header */}
-                  <div className="mb-4 flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
+            return (
+              <article
+                key={order.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 p-4 shadow-sm"
+              >
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-500">
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${style.badge}`}
+                    >
                       <span
-                        className={`h-3 w-3 shrink-0 rounded-full ${column.color}`}
+                        className={`h-1.5 w-1.5 rounded-full ${style.dot}`}
                       />
-                      <h2 className="truncate text-sm font-semibold text-gray-900">
-                        {column.name}
-                      </h2>
-                    </div>
-
-                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-semibold text-gray-600">
-                      {columnOrders.length}
+                      {order.order_status}
                     </span>
                   </div>
 
-                  {/* Order cards */}
-                  <div className="grid content-start gap-3">
-                    {columnOrders.map((order) => (
-                      <article
-                        key={order.id}
-                        className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-                      >
-                        {/* Order number */}
-                        <div className="mb-3 flex items-center justify-between gap-2">
-                          <span className="text-xs font-medium text-gray-500">
-                            {order.id}
-                          </span>
+                  <h3 className="truncate font-semibold text-gray-900">
+                    {getItemLabel(order.order_items)}
+                  </h3>
+                  <p className="text-sm text-foreground/70">
+                    {order.user_infos.fname} {order.user_infos.lname}
+                  </p>
+                </div>
 
-                          <StatusIcon
-                            className="shrink-0 text-gray-400"
-                            size={17}
-                          />
-                        </div>
-
-                        {/* Product */}
-                        <h3 className="mb-1 font-semibold text-gray-900">
-                          {order.item}
-                        </h3>
-
-                        <p className="mb-4 text-sm text-gray-500">
-                          {order.name}
-                        </p>
-
-                        <div className="mb-3 border-t border-gray-100" />
-
-                        {/* Total and action */}
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-base font-bold text-gray-900">
-                            {order.total}
-                          </span>
-
-                          <Button.Hollow
-                            name={order.actions}
-                            type="button"
-                            onClick={() => console.log("View order:", order.id)}
-                          />
-                        </div>
-                      </article>
-                    ))}
-
-                    {/* Empty state */}
-                    {columnOrders.length === 0 && (
-                      <div className="rounded-xl border border-dashed border-gray-300 px-3 py-8 text-center">
-                        <p className="text-sm text-gray-400">No orders here</p>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              );
-            })}
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <span className="text-base font-bold text-gray-900">
+                    ₱{Number(order.total_amount).toFixed(2)}
+                  </span>
+                  <Button.Hollow
+                    name="View"
+                    type="button"
+                    onClick={() => console.log("View order:", order.id)}
+                  />
+                </div>
+              </article>
+            );
+          })}
         </div>
-      </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && filteredOrders.length === 0 && (
+        <div className="rounded-xl border border-dashed border-gray-300 px-3 py-12 text-center">
+          <p className="text-sm text-gray-400">No orders found</p>
+        </div>
+      )}
+
+      {/* Show more */}
+      {!isLoading && filteredOrders.length > visibleCount && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+            className="rounded-xl border border-gray-300 bg-white px-5 py-2 text-sm text-gray-600 transition-colors hover:border-primary hover:text-primary"
+          >
+            Show more ({filteredOrders.length - visibleCount})
+          </button>
+        </div>
+      )}
     </div>
   );
 }

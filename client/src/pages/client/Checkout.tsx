@@ -30,6 +30,8 @@ import OptionCard from "../../widgets/OptionsCard";
 import Section from "../../widgets/Sections";
 import Form, { type FormItem } from "../../components/reusable/Form";
 
+import { useCart } from "../../context/CartContext";
+
 // ------------------------------------- types -------------------------------------
 
 type DeliveryMethod = "pickup" | "deliver";
@@ -170,6 +172,7 @@ const labelClassName = "mb-1.5 block text-sm font-medium";
 function Checkout() {
   const nav = useNavigate();
   const loc = useLocation();
+  const { refreshCart } = useCart();
 
   const [userInfo, setUserInfo] = React.useState<CurrentUser | null>(null);
   const [userAddress, setUserAddress] = React.useState<UserAddress[]>([]);
@@ -240,6 +243,7 @@ function Checkout() {
 
       toast.success("Order placed!");
       nav(`/receipt/${orderId}`, { replace: true });
+      await refreshCart()
     } catch (err) {
       console.error(err);
 

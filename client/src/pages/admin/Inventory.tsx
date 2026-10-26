@@ -32,7 +32,7 @@ interface FilterValues {
 
 function Inventory() {
   // ------------------------------------------utilities--------------------------------------
-  useHeaderData("Menu");
+  useHeaderData("Menu and Inventory", "Give out delicious meals for your customers");
 
   const categories = [...Constants.public.Enums.product_category_enums];
 

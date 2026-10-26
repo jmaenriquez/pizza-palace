@@ -83,4 +83,51 @@ async function getAllOrder(){
     return response.json();
 }
 
-export default { placeOrderRequest, getOrderReceipt, getAllOrder }
+async function getAllUserOrder(){
+
+    const { data: {session} } = await supabase.auth.getSession();
+
+    if(!session){
+        throw new Error("Please login to get your receipt");
+    }
+
+    const response = await fetch(`${BASE_URL}/admin/order`, {
+        headers: { 
+            Authorization : `Bearer ${session.access_token}` 
+        },
+    });
+    
+    if(!response.ok){
+        const data = await response.json();
+        throw new Error(data.error ?? "Failed to get specific order by order id");
+    }
+
+    return response.json();
+}
+
+async function updateUserOrderStatus(id: string, order_status: string){
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if(!session){
+        throw new Error("Please login as admin to proceed updating.");
+    }
+
+    const response = await fetch(`${BASE_URL}/admin/orders/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-type" : "application/json", 
+            Authorization : `Bearer ${session.access_token}` 
+        },
+        body: JSON.stringify({ order_status })
+    });
+
+    if(!response.ok){
+        const data = await response.json();
+        throw new Error(data.error ?? "Failed to update status");
+    }
+
+    return response.json();
+}
+
+export default { placeOrderRequest, getOrderReceipt, getAllOrder, getAllUserOrder, updateUserOrderStatus }

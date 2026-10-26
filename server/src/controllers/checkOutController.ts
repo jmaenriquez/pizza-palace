@@ -98,4 +98,26 @@ async function getAllOrders(req: Request, res: Response){
     }
 }
 
-export default { placeOrder, getReceipt, getAllOrders };
+async function getAllUserOrders(req: Request, res: Response){
+    try{
+      const orders = await model.getAllUserOrders();
+      res.status(200).json(orders);
+    }catch(err){
+      console.error(err);
+      res.status(500).json({ error: "Failed to get all user orders." });
+    }
+}
+
+async function updateUserOrder(req: Request, res: Response){
+
+  try{
+    const { id } = req.params;
+    const { order_status } = req.body
+    await model.updateUserOrderStatus(String(id), order_status)
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error: "Failed to update the status of this order" });
+  }
+}
+
+export default { placeOrder, getReceipt, getAllOrders, getAllUserOrders, updateUserOrder };

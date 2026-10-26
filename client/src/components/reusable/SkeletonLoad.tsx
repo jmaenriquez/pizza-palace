@@ -95,4 +95,29 @@ function AdminMenuSkeleton() {
   );
 }
 
-export default { ProductCardSkeleton, RecommendedCardSkeleton, CartItemSkeleton, AdminMenuSkeleton };
+function OrderCardSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex animate-pulse items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+    >
+      {/* left: id + status badge, item name, customer */}
+      <div className="min-w-0 flex-1">
+        <div className="mb-2 flex items-center gap-2">
+          <div className="h-3 w-16 rounded bg-gray-200" />
+          <div className="h-5 w-20 rounded-full bg-gray-200" />
+        </div>
+        <div className="h-5 w-3/4 rounded bg-gray-200" />
+        <div className="mt-2 h-4 w-1/3 rounded bg-gray-200" />
+      </div>
+
+      {/* right: total + action button */}
+      <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="h-5 w-14 rounded bg-gray-200" />
+        <div className="h-9 w-20 rounded-lg bg-gray-200" />
+      </div>
+    </div>
+  );
+}
+
+export default { ProductCardSkeleton, RecommendedCardSkeleton, CartItemSkeleton, AdminMenuSkeleton, OrderCardSkeleton };
