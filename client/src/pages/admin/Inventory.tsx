@@ -23,6 +23,7 @@ import {
 } from "react-icons/lu";
 import toast from "react-hot-toast";
 import { FaPizzaSlice } from "react-icons/fa";
+import SkeletonLoad from "../../components/reusable/SkeletonLoad";
 
 interface FilterValues {
   name: string;
@@ -53,10 +54,13 @@ function Inventory() {
     string,
     string
   > | null>(null);
-  const [selectedList, setSelectedList] = React.useState<FormLists | null>(null)
+  const [selectedList, setSelectedList] = React.useState<FormLists | null>(
+    null,
+  );
 
   const [filterValue, setFilterValue] = React.useState("");
   const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // -------------------------------Functions-------------------------------------
 
@@ -139,6 +143,8 @@ function Inventory() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch product records");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,7 +165,12 @@ function Inventory() {
       variants: p.product_variants
         .slice()
         .sort((a, b) => a.sort_order - b.sort_order)
-        .map((variant) => ({ id: variant.id, label: variant.label ?? '', price: String(variant.price), stocks: String(variant.stocks)  }))
+        .map((variant) => ({
+          id: variant.id,
+          label: variant.label ?? "",
+          price: String(variant.price),
+          stocks: String(variant.stocks),
+        })),
     });
 
     setOpenMenuId(null);
@@ -227,7 +238,11 @@ function Inventory() {
           isOpen={isFormOpen}
           onClose={closeForm}
           onOutsideClick={closeForm}
-          toastMessage={selectedItem ? `Product edited successfully.` : `Product added to menu.` }
+          toastMessage={
+            selectedItem
+              ? `Product edited successfully.`
+              : `Product added to menu.`
+          }
           fields={[
             {
               fieldtype: "file",
@@ -260,9 +275,24 @@ function Inventory() {
               name: "variants",
               title: "Product Variant",
               columns: [
-                { label: "Variant", name: "label", placeholder: '16in, 22oz...', type: "text" },
-                { label: "Price", name: "price", placeholder: "249", type: "number" },
-                { label: "Stocks", name: "stocks", placeholder: "1000", type: "number" },
+                {
+                  label: "Variant",
+                  name: "label",
+                  placeholder: "16in, 22oz...",
+                  type: "text",
+                },
+                {
+                  label: "Price",
+                  name: "price",
+                  placeholder: "249",
+                  type: "number",
+                },
+                {
+                  label: "Stocks",
+                  name: "stocks",
+                  placeholder: "1000",
+                  type: "number",
+                },
               ],
             },
           ]}
@@ -325,7 +355,13 @@ function Inventory() {
         </div>
       </div>
 
-      {products.length === 0 ? (
+      {isLoading ? (
+        <div className="scrollbar-none lg:overflow-y-auto grid grid-cols-2 lg:grid-cols-1 gap-4 w-full">
+          {Array.from({ length: 6 }, (_, i) => (
+            <SkeletonLoad.AdminMenuSkeleton key={i} />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
         <div className="mt-12 md:mt-0 h-full flex-1 flex flex-col items-center justify-center gap-4 text-gray-300">
           <FaPizzaSlice className="w-12 h-12" />
           <p className="text-sm text-center">
@@ -334,7 +370,8 @@ function Inventory() {
         </div>
       ) : (
         /* Card Container */
-        <div className=" lg:overflow-y-auto grid grid-cols-2 lg:grid-cols-1 gap-4 w-full">
+
+        <div className="scrollbar-none lg:overflow-y-auto grid grid-cols-2 lg:grid-cols-1 gap-4 w-full">
           {products.map((item) => {
             const prices = item.product_variants.map(
               (variant) => variant.price,

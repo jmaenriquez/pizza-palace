@@ -149,8 +149,9 @@ function Register() {
               <>
                 <div className="">
                   <Fields.Input
+                    label="First Name"
                     name="fname"
-                    placeholder="First Name"
+                    placeholder="Juan"
                     value={user.fname}
                     type="text"
                     onChange={handleChange}
@@ -159,8 +160,9 @@ function Register() {
 
                 <div>
                   <Fields.Input
+                    label="Middle Name"
                     name="mname"
-                    placeholder="Middle Name"
+                    placeholder="Dimamatay"
                     value={user.mname}
                     type="text"
                     onChange={handleChange}
@@ -169,8 +171,9 @@ function Register() {
 
                 <div>
                   <Fields.Input
+                    label="Last Name"
                     name="lname"
-                    placeholder="Last Name"
+                    placeholder="Dela Cruz"
                     value={user.lname}
                     type="text"
                     onChange={handleChange}
@@ -184,6 +187,7 @@ function Register() {
               <>
                 <div className="">
                   <Fields.Input
+                    label="Birthday"
                     name="birthday"
                     placeholder=""
                     value={user.birthday}
@@ -194,8 +198,9 @@ function Register() {
 
                 <div>
                   <Fields.Input
+                    label="Contact Number"
                     name="contact"
-                    placeholder="Contact Number"
+                    placeholder="09XX-XXX-XXX"
                     value={user.contact}
                     type="text"
                     onChange={handleChange}
@@ -209,8 +214,9 @@ function Register() {
               <>
                 <div className="">
                   <Fields.Input
+                    label="Email"
                     name="email"
-                    placeholder="Email"
+                    placeholder="name@domain.com"
                     value={user.email}
                     type="text"
                     onChange={handleChange}
@@ -219,8 +225,9 @@ function Register() {
 
                 <div>
                   <Fields.Input
+                    label="Password"
                     name="password"
-                    placeholder="Password"
+                    placeholder="********"
                     value={user.password}
                     type="password"
                     onChange={handleChange}
@@ -229,8 +236,9 @@ function Register() {
 
                 <div>
                   <Fields.Input
+                    label="Confirm Password"
                     name="confirm"
-                    placeholder="Confirm Password"
+                    placeholder="********"
                     value={confirmPassword}
                     type="password"
                     onChange={confirmPasswordOnChange}
@@ -288,14 +296,14 @@ function Register() {
               icon={FaFacebook}
               name="Facebook"
               type="button"
-              onClick={() => console.log("Facebook Clicked")}
+              onClick={() => {console.log("Facebook Clicked"); toast.success("Facebook registration is still under development")}}
             />
 
             <Button.Hollow
               icon={FaGoogle}
               name="Google"
               type="button"
-              onClick={() => console.log("Google Clicked")}
+              onClick={() => {console.log("Google Clicked"); toast.success("Google registration is still under development")}}
             />
           </div>
         </div>

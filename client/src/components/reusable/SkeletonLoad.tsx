@@ -51,4 +51,48 @@ function CartItemSkeleton() {
   );
 }
 
-export default { ProductCardSkeleton, RecommendedCardSkeleton, CartItemSkeleton };
+function AdminMenuSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex animate-pulse flex-col lg:flex-row border border-foreground/10 rounded-lg shadow-md/10"
+    >
+      {/* image */}
+      <div className="lg:w-50 aspect-square shrink-0 rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none bg-foreground/10" />
+
+      <div className="flex-1 min-w-0 p-4 flex flex-col gap-3">
+        {/* name + price */}
+        <div className="flex flex-col lg:flex-row lg:justify-between gap-2">
+          <div className="h-4 lg:h-6 w-3/4 lg:w-1/3 rounded bg-foreground/10" />
+          <div className="h-4 lg:h-6 w-1/3 lg:w-28 rounded bg-foreground/10" />
+        </div>
+
+        {/* description (third line only shows on lg, like your line-clamp) */}
+        <div className="grid gap-2">
+          <div className="h-3 w-full rounded bg-foreground/10" />
+          <div className="h-3 w-4/5 rounded bg-foreground/10" />
+          <div className="hidden lg:block h-3 w-2/3 rounded bg-foreground/10" />
+        </div>
+
+        {/* variant chips */}
+        <div className="flex flex-wrap gap-2">
+          <div className="h-6 w-14 rounded-full bg-foreground/10" />
+          <div className="h-6 w-16 rounded-full bg-foreground/10" />
+        </div>
+
+        {/* stocks + mobile menu */}
+        <div className="mt-auto flex items-center justify-between">
+          <div className="h-4 w-20 rounded bg-foreground/10" />
+          <div className="lg:hidden h-6 w-6 rounded bg-foreground/10" />
+        </div>
+      </div>
+
+      {/* desktop menu */}
+      <div className="hidden lg:flex items-center px-8">
+        <div className="h-6 w-6 rounded bg-foreground/10" />
+      </div>
+    </div>
+  );
+}
+
+export default { ProductCardSkeleton, RecommendedCardSkeleton, CartItemSkeleton, AdminMenuSkeleton };

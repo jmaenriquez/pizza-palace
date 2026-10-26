@@ -31,7 +31,7 @@ function Parent() {
         <Sidenav />
         <div className='flex-1 w-full flex flex-col overflow-hidden'>
           <Header title={header.title} subtitle={header.subtitle} />
-          <div className='md:flex-1 md:overflow-y-auto'>
+          <div className='md:flex-1 md:overflow-y-auto scrollbar-none'>
             <Outlet context={{ setHeader }} />
           </div>
         </div>

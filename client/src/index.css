@@ -36,7 +36,7 @@
 
   html{
     scroll-behavior: smooth;
-    scrollbar-width: thin;
+    scrollbar-width: none;
     scrollbar-color: var(--color-secondary)
     color-mix(in srgb, var(--color-foreground) 80%, transparent);
   }

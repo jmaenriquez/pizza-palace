@@ -132,14 +132,14 @@ function Login() {
               icon={FaFacebook}
               name="Facebook"
               type="button"
-              onClick={() => console.log("Facebook Clicked")}
+              onClick={() => {console.log("Facebook Clicked"); toast.success("Facebook login is still under development")}}
             />
 
             <Button.Hollow
               icon={FaGoogle}
               name="Google"
               type="button"
-              onClick={() => console.log("Google Clicked")}
+              onClick={() => {console.log("Google Clicked"); toast.success("Google login is still under development")}}
             />
           </div>
         </div>

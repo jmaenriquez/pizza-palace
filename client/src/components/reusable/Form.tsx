@@ -125,7 +125,7 @@ function Form({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white w-80 md:w-120 shadow-lg/30 p-8 grid gap-8"
+        className="bg-white h-150 overflow-y-auto scrollbar-none w-80 md:w-120 shadow-lg/30 p-8 grid gap-8"
       >
         <div className="flex items-center justify-between">
           <h1 className="text-lg md:text-2xl">
