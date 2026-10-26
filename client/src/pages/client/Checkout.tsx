@@ -442,46 +442,53 @@ function Checkout() {
                   toastMessage={"Address successfully created!"}
                   fields={[
                     {
+                      label: "Address Name",
                       fieldtype: "input",
                       name: "name",
                       type: "text",
-                      placeholder: "Name (e.g. Work, School, Home)",
+                      placeholder: "Work, School, Home",
                     },
                     {
+                      label: "Bldg. Name",
                       fieldtype: "input",
                       name: "bldg_name",
                       type: "text",
-                      placeholder: "Bldg. Name",
+                      placeholder: "The Estate Makati",
                     },
                     {
+                      label: "House/Room Number",
                       fieldtype: "input",
                       name: "houseNum_roomNum",
                       type: "text",
-                      placeholder: "House/Room Number",
+                      placeholder: "Unit 15A",
                     },
                     {
+                      label: "Street/Purok",
                       fieldtype: "input",
                       name: "street_purok",
                       type: "text",
-                      placeholder: "Street/Purok",
+                      placeholder: "6747 Ayala Ave. ",
                     },
                     {
+                      label: "Barangay",
                       fieldtype: "input",
                       name: "barangay",
                       type: "text",
-                      placeholder: "Barangay",
+                      placeholder: "Urdaneta",
                     },
                     {
+                      label: "City",
                       fieldtype: "input",
                       name: "city",
                       type: "text",
-                      placeholder: "City",
+                      placeholder: "Makati City",
                     },
                     {
+                      label: "Province",
                       fieldtype: "input",
                       name: "province",
                       type: "text",
-                      placeholder: "Province",
+                      placeholder: "Metro Manila",
                     },
                   ]}
                   onSubmit={handleAddressSubmit}

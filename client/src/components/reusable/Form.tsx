@@ -1,5 +1,6 @@
 import React from "react";
-import { type Columns,  type Row, emptyRow } from "../../widgets/Fields";
+import { type Columns,  type Row } from "../../widgets/Fields";
+import { emptyRow } from "../../widgets/fieldHelp";
 
 import Fields from "../../widgets/Fields";
 import Button from "../../widgets/Button";
@@ -8,6 +9,7 @@ import { LuX } from "react-icons/lu";
 import toast from "react-hot-toast";
 
 interface FieldValues {
+  label?: string;
   name: string;
   placeholder?: string;
   title?: string;
@@ -119,7 +121,7 @@ function Form({
   return (
     <div
       onClick={onOutsideClick}
-      className="w-full fixed inset-0 bg-foreground/40 h-full flex justify-center items-center z-10"
+      className="w-full fixed inset-0 bg-foreground/40 h-full flex justify-center items-center  z-10"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -145,6 +147,7 @@ function Form({
               return (
                 <Fields.Input
                   key={f.name}
+                  label={f.label}
                   placeholder={f.placeholder}
                   name={f.name}
                   type={f.type ?? "text"}
@@ -156,6 +159,7 @@ function Form({
               return (
                 <Fields.Select
                   key={f.name}
+                  label={f.label}
                   name={f.name}
                   value={item[f.name]}
                   placeholder={f.placeholder}

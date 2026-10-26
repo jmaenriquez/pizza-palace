@@ -17,6 +17,7 @@ import productAPI from "../../api/requests/productRequest";
 import Button from "../../widgets/Button";
 import Skeleton from "../../components/reusable/SkeletonLoad";
 import Recommended from "../../components/reusable/Recommended";
+import { useCart } from "../../context/CartContext";
 
 interface CartItem {
   id: string;
@@ -41,27 +42,15 @@ interface CartItem {
   }[];
 }
 
-function shuffle<T>(items: T[]): T[] {
-  const a = [...items];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j]!, a[i]!];
-  }
-  return a;
-}
-
 function Cart() {
   // ---------------------------------------- utilities ------------------------------------------
   const nav = useNavigate();
+  const { refreshCart } = useCart();
 
   // ---------------------------------------- states ---------------------------------------------
 
   const [cart, setCart] = React.useState<CartItem[]>([]);
-  const [recommended, setRecommended] = React.useState<ProductWithVariants[]>(
-    [],
-  );
   const [isCartLoading, setIsCartLoading] = React.useState(true);
-  const [isRecLoading, setIsRecLoading] = React.useState(true);
 
   // -------------------------------------------- functions --------------------------------------------
 
@@ -124,6 +113,7 @@ function Cart() {
     try {
       await api.removeFromCart(id);
       setCart((prev) => prev.filter((item) => item.id !== id));
+      await refreshCart();
       toast.success("Item removed.");
     } catch (err) {
       console.error(err);
@@ -195,28 +185,6 @@ function Cart() {
     }
 
     loadCart();
-  }, []);
-
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const loadRecommended = async () => {
-      try {
-        const data = await productAPI.getRequest();
-        if (!cancelled) setRecommended(shuffle(data).slice(0, 6));
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) toast.error("Failed to load recommended products.");
-      } finally {
-        if (!cancelled) setIsRecLoading(false);
-      }
-    };
-
-    loadRecommended();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   return (
@@ -363,7 +331,7 @@ function Cart() {
                           <button
                             type="button"
                             onClick={() => removeItem(item.id)}
-                            className="shrink-0 text-foreground/40 transition-colors hover:text-primary"
+                            className="shrink-0 text-foreground/40 transition-colors hover:text-primary hover:cursor-pointer"
                           >
                             <LuTrash2 className="h-4 w-4" />
                           </button>

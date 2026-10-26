@@ -134,7 +134,7 @@ function Receipt() {
     getLoggedInUser().catch((err) => console.error(err));
   }, []);
 
-  if (!orderDetails || !orderDetails.address) return;
+  if (!orderDetails) return;
   if (!userInfos) return;
 
   return (

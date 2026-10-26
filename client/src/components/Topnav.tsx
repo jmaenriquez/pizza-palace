@@ -2,12 +2,13 @@ import React from "react";
 import { LuBell, LuLogOut, LuShoppingCart, LuUserRound } from "react-icons/lu";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
-import api from '../api/requests/cartRequest';
+import api from "../api/requests/cartRequest";
 import { useAuth } from "../context/AuthContext";
 
 import Button from "../widgets/Button";
 import supabase from "../config/supabase";
 import toast from "react-hot-toast";
+import { useCart } from "../context/CartContext";
 
 interface Links {
   name: string;
@@ -20,8 +21,9 @@ function Topnav() {
 
   const nav = useNavigate();
   const { pathname } = useLocation();
+  const { cartCount } = useCart()
 
-  const { session, sessionLoading} = useAuth()
+  const { session, sessionLoading } = useAuth();
 
   const link: Links[] = [
     { to: "/", name: "Home", key: "home" },
@@ -36,7 +38,6 @@ function Topnav() {
   const [scrollY, setScrollY] = React.useState(0);
   const isSolid = !hasHero || scrollY > 50;
   const [isUserOpen, setIsUserOpen] = React.useState(false);
-  const [cart, setCart] = React.useState<string[]>([]);
 
   // --------------------------------useEffects--------------------------
 
@@ -47,23 +48,10 @@ function Topnav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
 
-  React.useEffect(() => {
-    async function getCart(){
-      try{
-        const data = await api.getCartItems();
-        setCart(data);
-      }catch(err){
-        console.error(err);
-      }
-    }
-
-    getCart().catch((err) => console.error(err));
-  },[cart])
-
   return (
     <div
-      className={`w-full z-50 transition-colors duration-300
-      ${hasHero ? "fixed" : "bg-foreground/60 backdrop-blur-sm border border-foreground/70"}
+      className={` w-full z-50 transition-colors duration-300
+      ${hasHero ? "fixed" : "relative bg-foreground/60 backdrop-blur-sm border border-foreground/70"}
       ${isSolid ? "bg-foreground/40 backdrop-blur-sm border border-foreground/50" : ""}
     `}
     >
@@ -87,10 +75,10 @@ function Topnav() {
         </nav>
 
         <div>
-          {sessionLoading ? <div></div> 
-          : session ?(
+          {sessionLoading ? (
+            <div></div>
+          ) : session ? (
             <div className="flex gap-8 text-background">
-
               <button>
                 <LuBell className="w-5 h-5 cursor-pointer" strokeWidth={3} />
               </button>
@@ -99,61 +87,62 @@ function Topnav() {
                 <LuShoppingCart
                   className="w-5 h-5 cursor-pointer"
                   strokeWidth={3}
-                  onClick={() => nav('/cart')}
+                  onClick={() => nav("/cart")}
                 />
 
-                <span className={`${cart.length=== 0 ? "hidden" : ""}  absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-background`}>
-                    {cart.length}
+                <span
+                  className={`${cartCount === 0 ? "hidden" : ""}  absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-background`}
+                >
+                  {cartCount}
                 </span>
               </button>
 
-              <button className="hidden md:inline">
-                <LuUserRound
-                  className="w-5 h-5 cursor-pointer"
-                  strokeWidth={3}
-                  onClick={() =>
-                    !isUserOpen ? setIsUserOpen(true) : setIsUserOpen(false)
-                  }
-                />
+              <div className="relative hidden md:inline">
+                <button className="">
+                  <LuUserRound
+                    className="w-5 h-5 cursor-pointer"
+                    strokeWidth={3}
+                    onClick={() =>
+                      !isUserOpen ? setIsUserOpen(true) : setIsUserOpen(false)
+                    }
+                  />
+                </button>
 
-              </button>
-
-              {isUserOpen && (
-                <div
-                  className="absolute right-8 top-full -mt-4 w-48 rounded-lg p-2
+                {isUserOpen && (
+                  <div
+                    className="absolute right-2 bot top-full  w-48 rounded-lg p-2
                     bg-foreground/90 backdrop-blur-sm shadow-lg
                     border border-background/10 text-background"
-                >
-                  
+                  >
+                    <div className="flex flex-col">
+                      <span
+                        className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
+                         hover:bg-background/10 hover:text-secondary transition-colors"
+                      >
+                        Profile
+                      </span>
+                      <span
+                        className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
+                         hover:bg-background/10 hover:text-secondary transition-colors"
+                      >
+                        Settings
+                      </span>
+                    </div>
 
-                  <div className="flex flex-col">
-                    <span
-                      className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
-                         hover:bg-background/10 hover:text-secondary transition-colors"
-                    >
-                      Profile
-                    </span>
-                    <span
-                      className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
-                         hover:bg-background/10 hover:text-secondary transition-colors"
-                    >
-                      Settings
-                    </span>
+                    <div className="my-2 border-t border-background/10" />
+
+                    <Button.Solid
+                      icon={LuLogOut}
+                      name="Log out"
+                      type="button"
+                      onClick={async () => {
+                        await supabase.auth.signOut();
+                      }}
+                      iconRight={true}
+                    />
                   </div>
-
-                  <div className="my-2 border-t border-background/10" />
-
-                  <Button.Solid
-                    icon={LuLogOut}
-                    name="Log out"
-                    type="button"
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                    }}
-                    iconRight= {true}
-                  />
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex gap-4 shrink-0">

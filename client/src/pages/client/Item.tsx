@@ -6,6 +6,7 @@ import api from "../../api/requests/cartRequest";
 import productAPI from "../../api/requests/productRequest";
 import supabase from "../../config/supabase";
 
+import { useCart } from "../../context/CartContext";
 import toast from "react-hot-toast";
 import Button from "../../widgets/Button";
 import Recommended from "../../components/reusable/Recommended";
@@ -17,10 +18,12 @@ import {
   LuShoppingBasket,
 } from "react-icons/lu";
 
+
 function Item() {
   // ----------------------------------------------------- utilities ---------------------------------------------
   const nav = useNavigate();
   const loc = useLocation();
+  const { refreshCart } = useCart()
 
   const product = loc.state?.products as ProductWithVariants | undefined;
 
@@ -79,6 +82,7 @@ function Item() {
       }
 
       const result = await api.addToCart({ variantId: selectedVariant.id, quantity });
+      await refreshCart();
       toast.success( result.updated ? `${product.name} has been updated.` : `${product.name} has been added to cart.`);
     } catch (err) {
       console.error(err);

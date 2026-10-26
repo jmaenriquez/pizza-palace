@@ -235,21 +235,24 @@ function Inventory() {
               placeholder: "Upload image",
             },
             {
+              label: "Product Name",
               fieldtype: "input",
               name: "name",
               type: "text",
               placeholder: "Name",
             },
             {
+              label: "Description",
               fieldtype: "input",
               name: "description",
               type: "text",
-              placeholder: "Description",
+              placeholder: "This is a delicious product...",
             },
             {
+              label: "Categories",
               fieldtype: "select",
               name: "category",
-              placeholder: "Categories",
+              placeholder: "Select",
               options: categories,
             },
             {
@@ -257,9 +260,9 @@ function Inventory() {
               name: "variants",
               title: "Product Variant",
               columns: [
-                { name: "label", placeholder: "Size", type: "text" },
-                { name: "price", placeholder: "Price", type: "number" },
-                { name: "stocks", placeholder: "Stocks", type: "number" },
+                { label: "Variant", name: "label", placeholder: '16in, 22oz...', type: "text" },
+                { label: "Price", name: "price", placeholder: "249", type: "number" },
+                { label: "Stocks", name: "stocks", placeholder: "1000", type: "number" },
               ],
             },
           ]}

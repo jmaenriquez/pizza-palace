@@ -146,44 +146,48 @@ function Dashboard() {
 
           {/* Card Container */}
           <div className="py-8 md:py-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-2 gap-y-6 lg:gap-x-4 lg:gap-y-12">
-            {products.slice(0, 3).map((item) => {
-              const price = Math.min(
-                ...item.product_variants.map((v) => v.price),
-              );
+            {isLoading
+              ? Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton.ProductCardSkeleton key={i} />
+                ))
+              : products.slice(0, 3).map((item) => {
+                  const price = Math.min(
+                    ...item.product_variants.map((v) => v.price),
+                  );
 
-              return (
-                // Cards
-                <div
-                  onClick={() => onItemClick(item)}
-                  key={item.id}
-                  className="overflow-hidden border border-foreground/20 rounded-lg shadow-md/40 hover:border-primary hover:cursor-pointer hover:scale-102 transition-all ease-in-out delay-75"
-                >
-                  <div className="aspect-square">
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  return (
+                    // Cards
+                    <div
+                      onClick={() => onItemClick(item)}
+                      key={item.id}
+                      className="overflow-hidden border border-foreground/20 rounded-lg shadow-md/40 hover:border-primary hover:cursor-pointer hover:scale-102 transition-all ease-in-out delay-75"
+                    >
+                      <div className="aspect-square">
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
 
-                  <div className="p-4 flex flex-col gap-2">
-                    <div className="flex flex-col gap-2">
-                      <h1 className="text-base md:text-xl lg:text-2xl font-semibold">
-                        {item.name}
-                      </h1>
+                      <div className="p-4 flex flex-col gap-2">
+                        <div className="flex flex-col gap-2">
+                          <h1 className="text-base md:text-xl lg:text-2xl font-semibold">
+                            {item.name}
+                          </h1>
 
-                      <p className="line-clamp-2 text-foreground/60 text-xs md:text-sm lg:text-base">
-                        {item.description}
-                      </p>
+                          <p className="line-clamp-2 text-foreground/60 text-xs md:text-sm lg:text-base">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <h3 className="text-base md:text-xl lg:text-2xl font-semibold text-primary">
+                          ₱{price}
+                        </h3>
+                      </div>
                     </div>
-
-                    <h3 className="text-base md:text-xl lg:text-2xl font-semibold text-primary">
-                      ₱{price}
-                    </h3>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
           </div>
         </div>
       </div>

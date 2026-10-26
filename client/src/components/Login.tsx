@@ -84,9 +84,10 @@ function Login() {
           >
             <div className="">
               <Fields.Input
+                label="Email"
                 icon={LuUserRound}
                 name="email"
-                placeholder="Email"
+                placeholder="name@domain.com"
                 value={user.email}
                 type="text"
                 onChange={handleChange}
@@ -95,9 +96,10 @@ function Login() {
 
             <div>
               <Fields.Input
+                label="Password"
                 icon={LuLock}
                 name="password"
-                placeholder="Password"
+                placeholder="*******"
                 value={user.password}
                 type="password"
                 onChange={handleChange}
@@ -106,11 +108,7 @@ function Login() {
           </form>
 
           <div className="grid gap-2">
-            <Button.Solid
-              name="Log In"
-              type="button"
-              onClick={handleLogin}
-            />
+            <Button.Solid name="Log In" type="button" onClick={handleLogin} />
 
             <Button.Hollow
               name="Sign Up"

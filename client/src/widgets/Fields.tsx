@@ -2,7 +2,10 @@ import React from "react";
 import type { IconType } from "react-icons";
 import { LuPlus, LuTrash2 } from "react-icons/lu";
 
+import { emptyRow } from "./fieldHelp";
+
 interface InputProps {
+  label?: string;
   icon?: IconType;
   name: string;
   value: string;
@@ -11,12 +14,13 @@ interface InputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-interface SelectOption {
-  label: string;
-  value: string;
-}
+// interface SelectOption {
+//   label: string;
+//   value: string;
+// }
 
 interface SelectProps {
+  label?: string;
   name: string;
   value: string;
   placeholder?: string;
@@ -34,29 +38,29 @@ interface FileProps {
 }
 
 export interface Columns {
-  name: string
-  type?: React.HTMLInputTypeAttribute
-  placeholder?: string
+  label?: string;
+  name: string;
+  type?: React.HTMLInputTypeAttribute;
+  placeholder?: string;
 }
 
-export type Row = Record<string, string>
+export type Row = Record<string, string>;
 
-interface MultiInputProps{
+interface MultiInputProps {
   title?: string;
   columns: Columns[];
-  rows: Row[]
+  rows: Row[];
   add_label?: string;
   min_rows?: number;
   onChange: (row: Row[]) => void;
 }
 
 
-
-export const emptyRow = (columns: Columns[]): Row => Object.fromEntries(columns.map(cols => [cols.name, '']));
-
-const cell = 'border p-3 font-poppins text-xs lg:text-sm w-full rounded-sm border-gray-300 focus:border-primary focus:outline-none'
+const cell =
+  "border p-3 font-poppins text-xs lg:text-sm w-full rounded-sm border-gray-300 focus:border-primary focus:outline-none";
 
 function Input({
+  label,
   icon: Icon,
   name,
   value,
@@ -65,27 +69,36 @@ function Input({
   onChange,
 }: InputProps) {
   return (
-    <div className="relative flex items-center w-full">
-      {Icon && (
-        <div className="absolute left-0 px-4 text-gray-400 pointer-events-none">
-          <Icon />
-        </div>
+    <div className="flex flex-col gap-2">
+      {label && (
+        <label htmlFor={name} className="text-xs font-poppins">
+          {label}
+        </label>
       )}
-      <input
-        type={type}
-        name={name}
-        value={value}
-        placeholder={placeholder}
-        onChange={onChange}
-        className={`border font-poppins w-full rounded-sm text-xs lg:text-sm border-gray-300 focus:border-primary focus:outline-none
+      <div className="relative flex items-center w-full">
+        {Icon && (
+          <div className="absolute left-0 px-4 text-gray-400 pointer-events-none">
+            <Icon />
+          </div>
+        )}
+
+        <input
+          type={type}
+          name={name}
+          value={value}
+          placeholder={placeholder}
+          onChange={onChange}
+          className={`border font-poppins w-full rounded-sm text-xs lg:text-sm border-gray-300 focus:border-primary focus:outline-none
           ${!Icon ? "p-3 sm:p-3 xl:p-4" : "pl-9 pr-3 sm:pl-9 xl:pl-10 py-3 xl:py-4"}
         `}
-      />
+        />
+      </div>
     </div>
   );
 }
 
 function Select({
+  label,
   name,
   value,
   placeholder,
@@ -93,7 +106,12 @@ function Select({
   onChange,
 }: SelectProps) {
   return (
-    <div>
+    <div className="flex flex-col gap-2">
+      {label && (
+        <label htmlFor={name} className="text-xs font-poppins">
+          {label}
+        </label>
+      )}
       <select
         name={name}
         value={value}
@@ -162,59 +180,68 @@ function MultipleInput({
   columns,
   rows,
   onChange,
-  add_label = 'Add row',
+  add_label = "Add row",
   min_rows = 1,
 }: MultiInputProps) {
   const update = (i: number, key: string, value: string) =>
-    onChange(rows.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)))
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)));
 
-  const add = () => onChange([...rows, emptyRow(columns)])
-  const remove = (i: number) => onChange(rows.filter((_, idx) => idx !== i))
+  const add = () => onChange([...rows, emptyRow(columns)]);
+  const remove = (i: number) => onChange(rows.filter((_, idx) => idx !== i));
 
   return (
-    <div className='flex flex-col gap-2'>
-      {title && <h1 className='font-poppins text-sm text-gray-500'>{title}</h1>}
+    <div className="flex flex-col gap-2">
+      {title && <h1 className="font-poppins text-sm text-gray-500">{title}</h1>}
 
       {rows.map((row, i) => (
         <div
           key={i}
-          className='grid gap-2 items-center'
-          style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr)) auto` }}
+          className="grid gap-2 items-center"
+          style={{
+            gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr)) auto`,
+          }}
         >
-          {columns.map(col => (
-            <input
-              key={col.name}
-              name={col.name}
-              type={col.type ?? 'text'}
-              value={row[col.name] ?? ''}
-              placeholder={col.placeholder}
-              onChange={e => update(i, col.name, e.target.value)}
-              className={cell}
-            />
+          {columns.map((col) => (
+            <div>
+              {col.label && (
+                <label htmlFor={col.name} className="text-xs font-poppins">
+                  {col.label}
+                </label>
+              )}
+
+              <input
+                key={col.name}
+                name={col.name}
+                type={col.type ?? "text"}
+                value={row[col.name] ?? ""}
+                placeholder={col.placeholder}
+                onChange={(e) => update(i, col.name, e.target.value)}
+                className={cell}
+              />
+            </div>
           ))}
 
           <button
-            type='button'
+            type="button"
             onClick={() => remove(i)}
             disabled={rows.length <= min_rows}
-            aria-label='Remove row'
-            className='text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer'
+            aria-label="Remove row"
+            className="text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
-            <LuTrash2 className='w-4 h-4' />
+            <LuTrash2 className="w-4 h-4" />
           </button>
         </div>
       ))}
 
       <button
-        type='button'
+        type="button"
         onClick={add}
-        className='flex items-center gap-1 self-start text-xs lg:text-sm font-poppins text-primary cursor-pointer'
+        className="flex items-center gap-1 self-start text-xs lg:text-sm font-poppins text-primary cursor-pointer"
       >
-        <LuPlus className='w-4 h-4' /> {add_label}
+        <LuPlus className="w-4 h-4" /> {add_label}
       </button>
     </div>
-  )
+  );
 }
-
 
 export default { Input, Select, File, MultipleInput };
