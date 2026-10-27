@@ -108,13 +108,27 @@ async function getAllUserOrders(req: Request, res: Response){
     }
 }
 
-async function updateUserOrder(req: Request, res: Response){
+const ORDER_STATUSES = ["Pending", "Preparing", "Ready", "Out for Delivery", "Delivered", "Picked Up", "Canceled"]
+const PAYMENT_STATUSES = ["Pending Payment", "Completed"]
 
-  try{
+async function updateUserOrder(req: Request, res: Response) {
+  try {
     const { id } = req.params;
-    const { order_status } = req.body
-    await model.updateUserOrderStatus(String(id), order_status)
-  }catch(err){
+    const { order_status, payment_status } = req.body ?? {};
+
+    if (order_status === undefined && payment_status === undefined) {
+      return res.status(400).json({ error: "Nothing to update." });
+    }
+    if (order_status !== undefined && !ORDER_STATUSES.includes(order_status)) {
+      return res.status(400).json({ error: "Invalid order status." });
+    }
+    if (payment_status !== undefined && !PAYMENT_STATUSES.includes(payment_status)) {
+      return res.status(400).json({ error: "Invalid payment status." });
+    }
+
+    await model.updateUserOrderStatus(String(id), { order_status, payment_status });
+    res.status(200).json({ message: "Order updated." });
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update the status of this order" });
   }

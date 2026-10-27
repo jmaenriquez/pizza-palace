@@ -2,12 +2,10 @@ import React from "react";
 import { LuBell, LuLogOut, LuShoppingCart, LuUserRound } from "react-icons/lu";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
-import api from "../api/requests/cartRequest";
 import { useAuth } from "../context/AuthContext";
 
 import Button from "../widgets/Button";
 import supabase from "../config/supabase";
-import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 
 interface Links {
@@ -21,7 +19,7 @@ function Topnav() {
 
   const nav = useNavigate();
   const { pathname } = useLocation();
-  const { cartCount } = useCart()
+  const { cartCount } = useCart();
 
   const { session, sessionLoading } = useAuth();
 
@@ -78,7 +76,7 @@ function Topnav() {
           {sessionLoading ? (
             <div></div>
           ) : session ? (
-            <div className="flex gap-8 text-background">
+            <div className="flex items-center gap-8 text-background">
               <button>
                 <LuBell className="w-5 h-5 cursor-pointer" strokeWidth={3} />
               </button>
@@ -97,49 +95,54 @@ function Topnav() {
                 </span>
               </button>
 
-              <div className="relative hidden md:inline">
-                <button className="">
+              <div className="relative hidden md:flex items-center">
+                <button
+                  type="button"
+                  className="flex items-center"
+                  onClick={() => setIsUserOpen((o) => !o)}
+                >
                   <LuUserRound
                     className="w-5 h-5 cursor-pointer"
                     strokeWidth={3}
-                    onClick={() =>
-                      !isUserOpen ? setIsUserOpen(true) : setIsUserOpen(false)
-                    }
                   />
                 </button>
 
                 {isUserOpen && (
-                  <div
-                    className="absolute right-2 bot top-full  w-48 rounded-lg p-2
+                  <div className="absolute right-0 top-full mt-3 w-48 ...">
+                    {isUserOpen && (
+                    <div
+                      className="absolute right-2 mt-2 bot top-full  w-48 rounded-lg p-2
                     bg-foreground/90 backdrop-blur-sm shadow-lg
                     border border-background/10 text-background"
-                  >
-                    <div className="flex flex-col">
-                      <span
-                        className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
+                    >
+                      <div className="flex flex-col">
+                        <span
+                          className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
                          hover:bg-background/10 hover:text-secondary transition-colors"
-                      >
-                        Profile
-                      </span>
-                      <span
-                        className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
+                        >
+                          Profile
+                        </span>
+                        <span
+                          className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
                          hover:bg-background/10 hover:text-secondary transition-colors"
-                      >
-                        Settings
-                      </span>
+                        >
+                          Settings
+                        </span>
+                      </div>
+
+                      <div className="my-2 border-t border-background/10" />
+
+                      <Button.Solid
+                        icon={LuLogOut}
+                        name="Log out"
+                        type="button"
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                        }}
+                        iconRight={true}
+                      />
                     </div>
-
-                    <div className="my-2 border-t border-background/10" />
-
-                    <Button.Solid
-                      icon={LuLogOut}
-                      name="Log out"
-                      type="button"
-                      onClick={async () => {
-                        await supabase.auth.signOut();
-                      }}
-                      iconRight={true}
-                    />
+                  )}
                   </div>
                 )}
               </div>

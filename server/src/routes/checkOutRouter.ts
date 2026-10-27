@@ -12,7 +12,7 @@ route.get('/order/:id', checkAuth.authenticateUser, ctrl.getReceipt);
 route.get('/order', checkAuth.authenticateUser, ctrl.getAllOrders);
 
 // Admin access
-route.get('/admin/order',  ctrl.getAllUserOrders);
+route.get('/admin/order', checkAuth.requireAdmin,  ctrl.getAllUserOrders);
 route.put('/admin/order/:id', checkAuth.requireAdmin, ctrl.updateUserOrder);
 
 export default route;

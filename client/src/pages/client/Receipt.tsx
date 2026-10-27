@@ -196,7 +196,7 @@ function Receipt() {
                 ${
                   orderDetails.order_status === "Pending"
                     ? "text-primary bg-primary/10"
-                    : orderDetails.order_status === "Processing"
+                    : orderDetails.order_status === "Preparing"
                       ? "text-secondary bg-secondary/10"
                       : orderDetails.order_status === "Ready" ||
                           orderDetails.order_status === "On Delivery"

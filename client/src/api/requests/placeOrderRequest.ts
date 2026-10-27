@@ -13,6 +13,22 @@ interface OrderDetails {
   promo_code?: string;
 }
 
+type OrderStatus =
+  | "Pending"
+  | "Preparing"
+  | "Ready"
+  | "Out for Delivery"
+  | "Delivered"
+  | "Picked Up"
+  | "Canceled";
+
+type PaymentStatus = | "Pending Payment" | "Completed"
+
+interface StatusUpdate{
+    order_status?: OrderStatus;
+    payment_status?: PaymentStatus;
+}
+
 async function placeOrderRequest(order: OrderDetails){
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -105,7 +121,7 @@ async function getAllUserOrder(){
     return response.json();
 }
 
-async function updateUserOrderStatus(id: string, order_status: string){
+async function updateUserOrderStatus(id: string, orderStatusUpdate: StatusUpdate){
 
     const { data: { session } } = await supabase.auth.getSession();
 
@@ -113,13 +129,13 @@ async function updateUserOrderStatus(id: string, order_status: string){
         throw new Error("Please login as admin to proceed updating.");
     }
 
-    const response = await fetch(`${BASE_URL}/admin/orders/${id}`, {
+    const response = await fetch(`${BASE_URL}/admin/order/${id}`, {
         method: "PUT",
         headers: {
             "Content-type" : "application/json", 
             Authorization : `Bearer ${session.access_token}` 
         },
-        body: JSON.stringify({ order_status })
+        body: JSON.stringify(orderStatusUpdate)
     });
 
     if(!response.ok){

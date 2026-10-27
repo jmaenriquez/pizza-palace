@@ -4,43 +4,18 @@ import { LuSearch } from "react-icons/lu";
 
 import api from "../../api/requests/placeOrderRequest";
 import { useHeaderData } from "../../utils/hooks/useHeaderData";
+import type {
+  OrderDetails,
+  OrderStatus,
+  OrderItem,
+  OrderStatusUpdate,
+} from "../../utils/orderFlow";
 
 import Fields from "../../widgets/Fields";
 import Button from "../../widgets/Button";
+import ViewOrder from "./components/ViewOrder";
 import Skeleton from "../../components/reusable/SkeletonLoad";
 
-type OrderStatus =
-  | "Pending"
-  | "Preparing"
-  | "Ready"
-  | "Out for Delivery"
-  | "Delivered"
-  | "Picked Up"
-  | "Canceled";
-
-interface OrderItem {
-  id: string;
-  quantity: number;
-  product_variants: {
-    products: { name: string };
-  };
-}
-
-interface OrderDetails {
-  id: string;
-  order_status: OrderStatus;
-  order_timing: "asap" | "schedule";
-  delivery_method: "pickup" | "deliver";
-  total_amount: number;
-  ordered_date: string;
-  user_infos: {
-    fname: string;
-    lname: string;
-  }
-  order_items: OrderItem[];
-}
-
-// Badge colors per status (full class names so Tailwind can detect them)
 const statusStyles: Record<OrderStatus, { badge: string; dot: string }> = {
   Pending: { badge: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
   Preparing: { badge: "bg-orange-50 text-orange-700", dot: "bg-orange-500" },
@@ -54,11 +29,13 @@ const statusStyles: Record<OrderStatus, { badge: string; dot: string }> = {
   Canceled: { badge: "bg-red-50 text-red-700", dot: "bg-red-500" },
 };
 
-const fallbackStyle = { badge: "bg-gray-100 text-gray-600", dot: "bg-gray-400" };
+const fallbackStyle = {
+  badge: "bg-gray-100 text-gray-600",
+  dot: "bg-gray-400",
+};
 
 const allStatuses = Object.keys(statusStyles) as OrderStatus[];
 
-// Orders still in progress; finished ones only show under their own filter
 const activeStatuses: OrderStatus[] = [
   "Pending",
   "Preparing",
@@ -81,18 +58,25 @@ const getItemLabel = (items: OrderItem[]) => {
 };
 
 function Orders() {
-  const [orders, setOrders] = React.useState<OrderDetails[]>([]);
-  const [search, setSearch] = React.useState("");
-  const [selectedFilter, setSelectedFilter] = React.useState<Filter>("Active");
-  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
-  const [isLoading, setIsLoading] = React.useState(true);
+  // -------------------------------------- utilities ---------------------------------
 
   useHeaderData(
     "Order Management",
     "Track and manage your Pizza Palace orders.",
   );
 
-  // ------------------------------- data -------------------------------
+  // ------------------------------------------ states -------------------------------------------
+
+  const [orders, setOrders] = React.useState<OrderDetails[]>([]);
+  const [search, setSearch] = React.useState("");
+  const [selectedFilter, setSelectedFilter] = React.useState<Filter>("Active");
+  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const selected = orders.find((o) => o.id === selectedId) ?? null;
+
+  // ------------------------------- useEffect -------------------------------
 
   React.useEffect(() => {
     async function fetchOrders() {
@@ -109,9 +93,8 @@ function Orders() {
     fetchOrders();
   }, []);
 
-  // ------------------------------- filtering -------------------------------
+  // ------------------------------- functions -------------------------------
 
-  // "#a1b2c3d4" and "a1b2c3d4" both work
   const searchTerm = search.trim().toLowerCase().replace(/^#/, "");
 
   const searchedOrders = orders.filter(
@@ -141,7 +124,23 @@ function Orders() {
     setVisibleCount(PAGE_SIZE);
   };
 
-  // ------------------------------- render -------------------------------
+  const handleUpdateStatus = async (id: string, update: OrderStatusUpdate) => {
+    try {
+      await api.updateUserOrderStatus(id, update);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === id ? { ...o, ...update } : o)),
+      );
+      toast.success(
+        update.order_status
+          ? `Order marked as ${update.order_status}.`
+          : "Payment marked as completed.",
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update the order.");
+      throw err;
+    }
+  };
 
   return (
     <div className="w-full min-w-0 px-4 pb-12 sm:px-6 xl:px-12">
@@ -198,7 +197,11 @@ function Orders() {
 
       {/* Order list */}
       {isLoading ? (
-        <Skeleton.OrderCardSkeleton />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 9 }, (_, i) => (
+            <Skeleton.OrderCardSkeleton key={i} />
+          ))}
+        </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visibleOrders.map((order) => {
@@ -239,13 +242,21 @@ function Orders() {
                   <Button.Hollow
                     name="View"
                     type="button"
-                    onClick={() => console.log("View order:", order.id)}
+                    onClick={() => setSelectedId(order.id)}
                   />
                 </div>
               </article>
             );
           })}
+
+          <ViewOrder
+            order={selected}
+            onClose={() => setSelectedId(null)}
+            onUpdateStatus={handleUpdateStatus}
+          />
         </div>
+
+        
       )}
 
       {/* Empty state */}

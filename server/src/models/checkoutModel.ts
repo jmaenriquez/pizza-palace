@@ -15,6 +15,13 @@ type OrderStatus =
   | "Picked Up"
   | "Canceled";
 
+type PaymentStatus = | "Pending Payment" | "Completed"
+
+interface OrderStatusUpdate{
+  order_status?: OrderStatus;
+  payment_status?: PaymentStatus;
+}
+
 interface OrderDetails {
   cartItemsId: string[];
   addressId?: string | null;
@@ -128,11 +135,11 @@ async function getAllUserOrders() {
   return data;
 }
 
-async function updateUserOrderStatus(id: string, order_status: OrderStatus ){
+async function updateUserOrderStatus(id: string, orderStatusUpdate: OrderStatusUpdate){
 
   const { error } = await supabase
   .from("order")
-  .update({ order_status })
+  .update(orderStatusUpdate)
   .eq("id", id)
   .single()
 
