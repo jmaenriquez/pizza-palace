@@ -36,6 +36,7 @@ function Topnav() {
   const [scrollY, setScrollY] = React.useState(0);
   const isSolid = !hasHero || scrollY > 50;
   const [isUserOpen, setIsUserOpen] = React.useState(false);
+  const userMenuRef = React.useRef<HTMLDivElement>(null);
 
   // --------------------------------useEffects--------------------------
 
@@ -45,6 +46,23 @@ function Topnav() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsUserOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div
@@ -95,7 +113,10 @@ function Topnav() {
                 </span>
               </button>
 
-              <div className="relative hidden md:flex items-center">
+              <div
+                ref={userMenuRef}
+                className="relative hidden md:flex items-center"
+              >
                 <button
                   type="button"
                   className="flex items-center"
@@ -108,41 +129,43 @@ function Topnav() {
                 </button>
 
                 {isUserOpen && (
-                  <div className="absolute right-0 top-full mt-3 w-48 ...">
-                    {isUserOpen && (
-                    <div
-                      className="absolute right-2 mt-2 bot top-full  w-48 rounded-lg p-2
-                    bg-foreground/90 backdrop-blur-sm shadow-lg
-                    border border-background/10 text-background"
-                    >
-                      <div className="flex flex-col">
-                        <span
-                          className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
-                         hover:bg-background/10 hover:text-secondary transition-colors"
-                        >
-                          Profile
-                        </span>
-                        <span
-                          className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
-                         hover:bg-background/10 hover:text-secondary transition-colors"
-                        >
-                          Settings
-                        </span>
-                      </div>
+                  <div
+                    className="absolute right-0 top-full mt-3 w-48 rounded-lg p-2
+        bg-foreground/90 backdrop-blur-sm shadow-lg
+        border border-background/10 text-background"
+                  >
+                    <div className="flex flex-col">
+                      <NavLink
+                        to="/profile"
+                        onClick={() => setIsUserOpen(false)}
+                        className="px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
+            hover:bg-background/10 hover:text-secondary transition-colors"
+                      >
+                        Profile
+                      </NavLink>
 
-                      <div className="my-2 border-t border-background/10" />
-
-                      <Button.Solid
-                        icon={LuLogOut}
-                        name="Log out"
+                      <button
                         type="button"
-                        onClick={async () => {
-                          await supabase.auth.signOut();
-                        }}
-                        iconRight={true}
-                      />
+                        onClick={() => setIsUserOpen(false)}
+                        className="text-left px-3 py-2 rounded-md font-poppins text-sm cursor-pointer
+            hover:bg-background/10 hover:text-secondary transition-colors"
+                      >
+                        Settings
+                      </button>
                     </div>
-                  )}
+
+                    <div className="my-2 border-t border-background/10" />
+
+                    <Button.Solid
+                      icon={LuLogOut}
+                      name="Log out"
+                      type="button"
+                      onClick={async () => {
+                        setIsUserOpen(false);
+                        await supabase.auth.signOut();
+                      }}
+                      iconRight={true}
+                    />
                   </div>
                 )}
               </div>

@@ -10,3 +10,14 @@ export function formatDateTime(
 
     return new Date(date).toLocaleString("en-PH", { dateStyle, timeStyle, timeZone  });
 }
+
+export function formatDate(
+  date: string | null,
+  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "medium",
+  timeZone = "Asia/Manila"
+){
+
+    if(!date) return ""
+
+    return new Date(date).toLocaleString("en-PH", { dateStyle, timeZone  });
+}

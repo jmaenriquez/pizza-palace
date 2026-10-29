@@ -111,19 +111,20 @@ async function getOrder(userId: string, id?: string) {
   return data;
 }
 
+//get all orders of a user
 async function getAllOrders(userId: string) {
 
   const { data, error } = await supabase
     .from("order")
     .select(ORDER_SELECT)
-    .eq("user_id", userId)
-    .single();
+    .eq("user_id", userId);
 
   if (error) throw error;
 
   return data;
 }
 
+// get all users' order
 async function getAllUserOrders() {
 
   const { data, error } = await supabase

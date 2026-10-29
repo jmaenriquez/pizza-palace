@@ -5,7 +5,7 @@ async function get(req: Request, res: Response) {
   try {
     const userId = res.locals.userId as string;
     const user = await model.getUser(userId);
-    res.status(200).json({ profile: user.profile, user: user.data  , message: "User successfully fetched" });
+    res.status(200).json({ profile: user.profile, user: user.data, orders: user.orders, message: "User successfully loaded." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get user profile." });

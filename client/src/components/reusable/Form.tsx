@@ -1,5 +1,5 @@
 import React from "react";
-import { type Columns,  type Row } from "../../widgets/Fields";
+import { type Columns, type Row } from "../../widgets/Fields";
 import { emptyRow } from "../../widgets/fieldHelp";
 
 import Fields from "../../widgets/Fields";
@@ -15,7 +15,7 @@ interface FieldValues {
   title?: string;
   fieldtype: "input" | "select" | "file" | "multiple";
   type?: React.HTMLInputTypeAttribute;
-  add_label?: string
+  add_label?: string;
   options?: string[]; // use only if field type is select
   columns?: Columns[]; // use only if field type is multiple
 }
@@ -70,15 +70,14 @@ function Form({
   onOutsideClick,
   onSubmit,
   selectedList,
-  toastMessage
+  toastMessage,
 }: FormProps) {
-
   // ----------------------------------- States -------------------------------------------
   const [item, setItem] = React.useState(() => buildItem(fields, selectedItem));
   const [file, setFile] = React.useState<FormFiles>({});
   const [lists, setLists] = React.useState<FormLists>(() =>
-  buildLists(fields, selectedList),
-);
+    buildLists(fields, selectedList),
+  );
 
   // ------------------------------------Funtions--------------------------------------------
 
@@ -132,10 +131,16 @@ function Form({
             {selectedItem ? editTitle : addTitle}
           </h1>
 
-          <LuX
-            className="w-4 h-4 md:w-6 md:h-6 text-gray-400 cursor-pointer"
-            onClick={onClose}
-          />
+          <span>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="rounded-full p-1.5 text-gray-400 transition hover:cursor-pointer hover:bg-foreground/5 hover:text-foreground"
+            >
+              <LuX className="h-5 w-5" />
+            </button>
+          </span>
         </div>
 
         <form

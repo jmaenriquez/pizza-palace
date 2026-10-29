@@ -87,10 +87,11 @@ async function getReceipt(req: Request, res: Response) {
     }
 }
 
+//get all orders of a user
 async function getAllOrders(req: Request, res: Response){
     try{
         const userId = res.locals.userId;
-        const orders = await model.getOrder(userId);
+        const orders = await model.getAllOrders(userId);
         res.status(200).json(orders);
     }catch(err){
         console.error(err);
@@ -98,6 +99,7 @@ async function getAllOrders(req: Request, res: Response){
     }
 }
 
+// get all users' order
 async function getAllUserOrders(req: Request, res: Response){
     try{
       const orders = await model.getAllUserOrders();

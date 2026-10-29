@@ -81,6 +81,8 @@ async function getOrderReceipt(id:string){
     return response.json();
 }
 
+
+// Getting all orders of a User
 async function getAllOrder(){
 
     const { data: {session} } = await supabase.auth.getSession();
@@ -89,7 +91,11 @@ async function getAllOrder(){
         throw new Error("Please login to get your receipt");
     }
 
-    const response = await fetch(`${BASE_URL}/order`);
+    const response = await fetch(`${BASE_URL}/order`, {
+        headers: { 
+            Authorization : `Bearer ${session.access_token}`
+        },
+    });
     
     if(!response.ok){
         const data = await response.json();
@@ -99,6 +105,7 @@ async function getAllOrder(){
     return response.json();
 }
 
+// Fetching all users order for admin
 async function getAllUserOrder(){
 
     const { data: {session} } = await supabase.auth.getSession();

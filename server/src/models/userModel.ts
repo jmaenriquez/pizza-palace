@@ -26,16 +26,23 @@ async function getUser(userId: string){
 
     if(error) throw error
 
+    const { data: orders, error: orderError } = await supabase
+    .from("order")
+    .select("*, address(*), order_items(*, product_variants(id, label, price, products(id, image_url, name, description, category)))")
+    .eq("user_id", userId);
+
+    if(orderError) throw orderError;
 
     return {
         profile: profile,
-        data: data.user
+        data: data.user,
+        orders: orders,
     };
 }
 
 async function editUserProfile(id: string, user: UserCreds ){
 
-    const { error: profileError } = await supabase
+    const { data, error: profileError } = await supabase
     .from("user_info")
     .update({
         fname: user.fname,
@@ -45,10 +52,19 @@ async function editUserProfile(id: string, user: UserCreds ){
         birthday: user.birthday,
     })
     .eq("id", id)
+    .select("id")
     .single();
 
     if(profileError) throw profileError;
-    
+
+    const { error: updateError } = await supabase
+    .auth
+    .admin
+    .updateUserById(data.id, { email: user.email })
+
+    if (updateError) throw updateError;
+
+    return data.id as string;
 }
 
 export default { getUser, editUserProfile }

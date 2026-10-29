@@ -1,7 +1,10 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { LuArrowLeft } from 'react-icons/lu'
+import { Outlet, useNavigate } from 'react-router-dom'
 
 function User() {
+
+  const nav = useNavigate();
 
   return (
     <div className='min-h-screen relative'>
@@ -19,7 +22,17 @@ function User() {
             />
           </div>
 
-          <div className='flex justify-center items-center p-8 md:py-12'>
+          <div className='relative flex flex-col justify-center items-center p-8 md:py-12'>
+            <div className='absolute right-2.5 md:right-4 top-2.5 md:top-4'>
+              <button
+                      type="button"
+                      onClick={() => nav("/")}
+                      className="mb-6 flex items-center gap-2 text-xs md:text-sm font-medium text-primary hover:cursor-pointer transition-all hover:gap-3"
+                    >
+                      <LuArrowLeft />
+                      <p className=''>Back to Menu</p>
+                    </button>
+            </div>
             <Outlet/>
             
           </div>
