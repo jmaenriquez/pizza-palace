@@ -1,7 +1,6 @@
 import supabase from "../config/supabase";
 
-interface UserCreds {
-  email: string;
+interface UserProfile {
   fname: string;
   mname: string;
   lname: string;
@@ -40,10 +39,10 @@ async function getUser(userId: string){
     };
 }
 
-async function editUserProfile(id: string, user: UserCreds ){
+async function editUserProfile(id: string, user: UserProfile ){
 
     const { data, error: profileError } = await supabase
-    .from("user_info")
+    .from("user_infos")
     .update({
         fname: user.fname,
         mname: user.mname,
@@ -56,15 +55,6 @@ async function editUserProfile(id: string, user: UserCreds ){
     .single();
 
     if(profileError) throw profileError;
-
-    const { error: updateError } = await supabase
-    .auth
-    .admin
-    .updateUserById(data.id, { email: user.email })
-
-    if (updateError) throw updateError;
-
-    return data.id as string;
 }
 
 export default { getUser, editUserProfile }

@@ -1,10 +1,9 @@
 import supabase from "../../config/supabase";
 import { BASE_URL } from "../authFetch";
 
-
-interface UserCreds {
+export interface UserCreds {
   fname: string;
-  mname: string;
+  mname?: string;
   lname: string;
   contact: string;
   birthday: string;

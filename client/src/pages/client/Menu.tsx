@@ -85,7 +85,7 @@ function Menu() {
             From classic favorites to bold new flavors.
           </h3>
 
-          <div className="flex gap-4 items-center mt-2">
+          <div className="mt-2">
             <Fields.Input
               icon={LuSearch}
               name="search"

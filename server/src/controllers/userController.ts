@@ -15,9 +15,8 @@ async function get(req: Request, res: Response) {
 async function update(req: Request, res: Response) {
   try {
     const userId = res.locals.userId as string;
-    const { email, fname, mname, lname, contact, birthday } = req.body;
+    const { fname, mname, lname, contact, birthday } = req.body;
     const newProfile = await model.editUserProfile(userId, {
-      email,
       fname,
       mname,
       lname,

@@ -4,7 +4,9 @@ import toast from "react-hot-toast";
 
 import type { FormItem } from "../components/reusable/Form";
 import type { IconType } from "react-icons";
+import type { UserCreds } from "../api/requests/userRequest";
 import {
+  LuCalendar,
   LuChevronRight,
   LuKeyRound,
   LuLogOut,
@@ -25,12 +27,15 @@ import { formatDate } from "../utils/formatDateTime";
 
 import Form from "../components/reusable/Form";
 import Button from "../widgets/Button";
+import SkeletonLoad from "../components/reusable/SkeletonLoad";
 
 interface User {
   fname: string;
+  mname: string;
   lname: string;
   contact: string;
   created_at: string;
+  birthday: string;
 }
 
 interface CurrentUser {
@@ -98,31 +103,6 @@ interface Address {
   province: string;
 }
 
-// ------------------------------- hardcoded data (replace later) -------------------------------
-
-const recentOrders = [
-  {
-    id: "D03F3CCF",
-    date: "Oct 23, 2026",
-    total: 908.4,
-    status: "Pending",
-    items: "Emperor Supreme + 2 more",
-  },
-  {
-    id: "A91C22B0",
-    date: "Oct 18, 2026",
-    total: 349,
-    status: "Delivered",
-    items: "Royal Tropic",
-  },
-  {
-    id: "7E40BD15",
-    date: "Oct 11, 2026",
-    total: 478,
-    status: "Picked Up",
-    items: "Knight's Shield + 1 more",
-  },
-];
 const statusStyles: Record<string, string> = {
   Pending: "bg-amber-50 text-amber-700",
   Preparing: "bg-orange-50 text-orange-700",
@@ -171,7 +151,7 @@ function Field({
 }: {
   icon: IconType;
   label: string;
-  value: string;
+  value: string | string[];
 }) {
   return (
     <div className="flex items-start gap-3">
@@ -199,6 +179,12 @@ function Profile() {
   const [orders, setOrders] = React.useState<OrderReceipt[]>([]);
   const [address, setAddress] = React.useState<Address[]>([]);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [isProfileFormOpen, setIsProfileFormOpen] = React.useState(false);
+
+  const [selectedAddress, setSelectedAddress] = React.useState<Record<
+    string,
+    string
+  > | null>(null);
 
   // --------------------------------------------- utilities -----------------------------------------------------------
 
@@ -215,15 +201,67 @@ function Profile() {
     { label: "Active", value: activeOrders.length },
     { label: "Saved addresses", value: address.length },
   ];
+
+  const profileValues = userProfile
+    ? {
+        fname: userProfile.profile.fname,
+        mname: userProfile.profile.mname ?? "",
+        lname: userProfile.profile.lname,
+        contact: userProfile.profile.contact,
+        birthday: userProfile.profile.birthday?.slice(0, 10) ?? "",
+      }
+    : null;
   // -------------------------------------------------- functions ------------------------------------------------------
+
+  async function getAddress() {
+    try {
+      const addresses = await addressAPI.getAddress();
+      setAddress(addresses);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load user's stored addresses.");
+    }
+  }
+
+  async function getUserProfile() {
+    try {
+      const profile = await api.getProfile();
+      setUserProfile(profile);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load user profile.");
+    }
+  }
 
   const closeForm = () => {
     setIsFormOpen(false);
   };
 
+  const closeProfileForm = () => {
+    setIsProfileFormOpen(false);
+  };
+
+  const handleEditProfile = async (item: FormItem) => {
+    if (!userProfile) return;
+    try {
+      const payload: UserCreds = {
+        fname: item.fname,
+        mname: item.mname,
+        lname: item.lname,
+        contact: item.contact,
+        birthday: item.birthday,
+      };
+      await api.updateProfile(userProfile.user.id, payload);
+      toast.success("User Profile successfully edited.")
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update user profile");
+    }
+  };
+
   const handleAddressSubmit = async (item: FormItem) => {
     try {
-      await addressAPI.createAddress({
+      const payload = {
         name: item.name,
         bldg_name: item.bldg_name,
         houseNum_roomNum: item.houseNum_roomNum,
@@ -231,26 +269,49 @@ function Profile() {
         barangay: item.barangay,
         city: item.city,
         province: item.province,
-      });
+      };
+      !selectedAddress
+        ? await addressAPI.createAddress(payload)
+        : await addressAPI.updateAddress(selectedAddress.id, payload);
+
+      !selectedAddress ? toast.success("Address successfully added.") : toast.success("Address successfully edited.")
+      setIsFormOpen(false);
+      getAddress();
+      setSelectedAddress(null);
     } catch (err) {
       console.error(err);
       toast.error("Failed to create your address");
     }
   };
 
+  const handleAddressDelete = async (id: string) => {
+    try {
+      await addressAPI.deleteAddress(id);
+      toast("Address successfully deleted.");
+    } catch (err) {
+      console.error(err);
+      toast.error(`Failed to delete ${selectedAddress!.name} address`);
+    }
+  };
+
+  const getSelectedAddressValues = async (item: Address) => {
+    setSelectedAddress({
+      id: item.id,
+      name: item.name,
+      bldg_name: item.bldg_name,
+      houseNum_roomNum: item.houseNum_roomNum,
+      street_purok: item.street_purok,
+      barangay: item.barangay,
+      city: item.city,
+      province: item.province,
+    });
+
+    setIsFormOpen(true);
+  };
+
   // ---------------------------------------------------- useEffects --------------------------------------------------
 
   React.useEffect(() => {
-    async function getUserProfile() {
-      try {
-        const profile = await api.getProfile();
-        setUserProfile(profile);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load user profile.");
-      }
-    }
-
     getUserProfile();
   }, []);
 
@@ -269,20 +330,10 @@ function Profile() {
   }, []);
 
   React.useEffect(() => {
-    async function getAddress() {
-      try {
-        const addresses = await addressAPI.getAddress();
-        setAddress(addresses);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load user's stored addresses.");
-      }
-    }
-
     getAddress();
   }, []);
 
-  if (!userProfile) return;
+  if (!userProfile) return <SkeletonLoad.ProfileSkeleton />;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-6 pb-24 sm:px-6 md:py-8 md:pb-8 lg:px-8 lg:py-12">
@@ -296,16 +347,20 @@ function Profile() {
               {/* <img src="JM_3 1.png" alt="" /> */}
             </div>
             <div className="min-w-0 pb-1">
-              <h2 className="truncate text-xl font-bold sm:text-2xl">
-                {userProfile.profile.fname} {userProfile.profile.lname}
+              <h2 className=" text-sm font-bold sm:text-lg md:text-xl lg:text-2xl">
+                {userProfile.profile.fname} {userProfile.profile.mname} {userProfile.profile.lname}
               </h2>
-              <p className="truncate text-sm text-foreground/55">
+              <p className="text-xs md:text-sm text-foreground/55">
                 Member since {formatDate(userProfile.profile.created_at)}
               </p>
             </div>
           </div>
 
-          <button type="button" className={ghostButton}>
+          <button
+            type="button"
+            className={ghostButton}
+            onClick={() => setIsProfileFormOpen(true)}
+          >
             <LuPencil className="h-4 w-4" />
             Edit profile
           </button>
@@ -331,23 +386,18 @@ function Profile() {
           <Card
             title="Personal information"
             subtitle="Used for order updates and pickup or delivery questions."
-            action={
-              <button type="button" className={ghostButton}>
-                <LuPencil className="h-4 w-4" />
-                <span className="hidden sm:inline">Edit</span>
-              </button>
-            }
+
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <Field
                 icon={LuUserRound}
-                label="First name"
-                value={userProfile.profile.fname}
+                label="Name"
+                value={[userProfile.profile.fname, userProfile.profile.mname, userProfile.profile.lname].filter(Boolean).join(" ")}
               />
               <Field
-                icon={LuUserRound}
-                label="Last name"
-                value={userProfile.profile.lname}
+                icon={LuCalendar}
+                label="Birthday"
+                value={formatDate(userProfile.profile.birthday, "long")}
               />
               <Field
                 icon={LuMail}
@@ -360,6 +410,52 @@ function Profile() {
                 value={userProfile.profile.contact}
               />
             </div>
+            <Form
+              editTitle={`Edit Profile`}
+              selectedItem={profileValues}
+              isOpen={isProfileFormOpen}
+              onClose={closeProfileForm}
+              onOutsideClick={closeProfileForm}
+              toastMessage="Profile successfully edited."
+              fields={[
+                {
+                  label: "First Name",
+                  fieldtype: "input",
+                  name: "fname",
+                  type: "text",
+                  placeholder: "Juan",
+                },
+                {
+                  label: "Middle Name",
+                  fieldtype: "input",
+                  name: "mname",
+                  type: "text",
+                  placeholder: "Dimamatay",
+                },
+                {
+                  label: "Last Name",
+                  fieldtype: "input",
+                  name: "lname",
+                  type: "text",
+                  placeholder: "Dela Cruz",
+                },
+                {
+                  label: "Birthday",
+                  fieldtype: "input",
+                  name: "birthday",
+                  type: "date",
+                  placeholder: "",
+                },
+                {
+                  label: "Contact Number",
+                  fieldtype: "input",
+                  name: "contact",
+                  type: "text",
+                  placeholder: "09XXXXXXXXX",
+                },
+              ]}
+              onSubmit={handleEditProfile}
+            />
           </Card>
 
           {/* Addresses */}
@@ -387,6 +483,7 @@ function Profile() {
                       <button
                         type="button"
                         aria-label={`Edit ${a.name}`}
+                        onClick={() => getSelectedAddressValues(a)}
                         className="rounded-md p-1.5 text-foreground/40 transition hover:bg-foreground/5 hover:text-primary"
                       >
                         <LuPencil className="h-4 w-4" />
@@ -394,6 +491,7 @@ function Profile() {
                       <button
                         type="button"
                         aria-label={`Delete ${a.name}`}
+                        onClick={() => handleAddressDelete(a.id)}
                         className="rounded-md p-1.5 text-foreground/40 transition hover:bg-foreground/5 hover:text-primary"
                       >
                         <LuTrash2 className="h-4 w-4" />
@@ -429,10 +527,10 @@ function Profile() {
               <Form
                 addTitle="Input Address"
                 editTitle={`Edit Address`}
+                selectedItem={selectedAddress}
                 isOpen={isFormOpen}
                 onClose={closeForm}
                 onOutsideClick={closeForm}
-                toastMessage={"Address successfully created!"}
                 fields={[
                   {
                     label: "Address Name",
@@ -505,59 +603,75 @@ function Profile() {
             }
           >
             <ul className="grid gap-3">
-              {recentOrders.map((o) => (
-                <li key={o.id}>
-                  <button
-                    type="button"
-                    className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-foreground/10 p-3 text-left transition hover:border-primary/50"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground/50 group-hover:text-primary">
-                      <LuReceipt className="h-5 w-5" />
-                    </span>
+              {orders
+                .sort(
+                  (a, b) =>
+                    new Date(b.ordered_date).getTime() -
+                    new Date(a.ordered_date).getTime(),
+                )
+                .slice(0, 3)
+                .map((o) => (
+                  <li key={o.id}>
+                    <button
+                      type="button"
+                      className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-foreground/10 p-3 text-left transition hover:border-primary/50"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground/50 group-hover:text-primary">
+                        <LuReceipt className="h-5 w-5" />
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-semibold">#{o.id}</p>
-                        <p className="text-sm font-bold">{peso(o.total)}</p>
-                      </div>
-                      <p className="truncate text-xs text-foreground/55">
-                        {o.items}
-                      </p>
-                      <div className="mt-1.5 flex items-center justify-between gap-2">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[o.status] ?? "bg-gray-100 text-gray-600"}`}
-                        >
-                          {o.status}
-                        </span>
-                        <span className="text-[11px] text-foreground/45">
-                          {o.date}
-                        </span>
-                      </div>
-                    </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold">
+                            #{o.id.slice(0, 8).toUpperCase()}
+                          </p>
+                          <p className="text-sm font-bold">
+                            {peso(o.total_amount)}
+                          </p>
+                        </div>
+                        <p className="truncate text-xs text-foreground/55">
+                          {o.order_items
+                            .slice(0, 1)
+                            .map((i) => i.product_variants.products.name)}
 
-                    <LuChevronRight className="h-4 w-4 shrink-0 text-foreground/30 group-hover:text-primary" />
-                  </button>
-                </li>
-              ))}
+                          {o.order_items.length > 1 &&
+                            ` +${o.order_items.length - 1}`}
+                        </p>
+                        <div className="mt-1.5 flex items-center justify-between gap-2">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[o.order_status] ?? "bg-gray-100 text-gray-600"}`}
+                          >
+                            {o.order_status}
+                          </span>
+                          <span className="text-[11px] text-foreground/45">
+                            {formatDate(o.ordered_date)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <LuChevronRight className="h-4 w-4 shrink-0 text-foreground/30 group-hover:text-primary" />
+                    </button>
+                  </li>
+                ))}
             </ul>
           </Card>
 
           {/* Account */}
           <Card title="Account">
             <div className="grid gap-3">
-              <button type="button" className={`${ghostButton} justify-start`}>
+              <button type="button" className={`${ghostButton} justify-start`} onClick={()=> toast.error("Sorry you can't change this user's credentials 😛")}>
                 <LuKeyRound className="h-4 w-4 text-primary" />
-                Change password
+                Change email and password
               </button>
               <Button.Solid
-                      icon={LuLogOut}
-                      name="Log out"
-                      type="button"
-                      onClick={async () => {
-                        await supabase.auth.signOut();
-                      }}
-                      iconRight={true}
-                    />
+                icon={LuLogOut}
+                name="Log out"
+                type="button"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                }}
+                iconRight={true}
+              />
             </div>
           </Card>
         </div>

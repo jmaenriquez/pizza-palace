@@ -120,4 +120,137 @@ function OrderCardSkeleton() {
   );
 }
 
-export default { ProductCardSkeleton, RecommendedCardSkeleton, CartItemSkeleton, AdminMenuSkeleton, OrderCardSkeleton };
+function Bone({ className = "" }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded-md bg-foreground/10 ${className}`} />
+  );
+}
+
+function SkeletonCard({
+  children,
+  withSubtitle = false,
+}: {
+  children: React.ReactNode;
+  withSubtitle?: boolean;
+}) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-sm">
+      <div className="border-b border-dashed border-foreground/20 p-5 sm:p-6">
+        <Bone className="h-5 w-40" />
+        {withSubtitle && <Bone className="mt-2 h-4 w-64 max-w-full" />}
+      </div>
+      <div className="p-5 sm:p-6">{children}</div>
+    </section>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <main
+      aria-busy="true"
+      aria-label="Loading profile"
+      className="mx-auto w-full max-w-6xl px-4 py-6 pb-24 sm:px-6 md:py-8 md:pb-8 lg:px-8 lg:py-12"
+    >
+      {/* Identity banner */}
+      <div className="mb-6 overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-sm">
+        <div className="h-20 animate-pulse bg-foreground/10 sm:h-24" />
+        <div className="flex flex-col gap-4 px-5 pb-5 sm:flex-row sm:items-end sm:justify-between sm:px-6 sm:pb-6">
+          <div className="-mt-10 flex items-end gap-4 sm:-mt-12">
+            <div className="h-20 w-20 shrink-0 animate-pulse rounded-full border-4 border-background bg-foreground/15 sm:h-24 sm:w-24" />
+            <div className="grid gap-2 pb-1">
+              <Bone className="h-6 w-48 sm:h-7" />
+              <Bone className="h-4 w-36" />
+            </div>
+          </div>
+          <Bone className="h-9 w-28 rounded-lg" />
+        </div>
+
+        <div className="grid grid-cols-3 divide-x divide-dashed divide-foreground/20 border-t border-dashed border-foreground/20">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-2 px-3 py-4 sm:py-5">
+              <Bone className="h-6 w-8" />
+              <Bone className="h-3 w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid items-start gap-6 lg:grid-cols-3 lg:gap-8">
+        {/* Left column */}
+        <div className="grid gap-6 lg:col-span-2">
+          {/* Personal info */}
+          <SkeletonCard withSubtitle>
+            <div className="grid gap-5 sm:grid-cols-2">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <Bone className="h-9 w-9 shrink-0 rounded-lg" />
+                  <div className="grid gap-2">
+                    <Bone className="h-3 w-16" />
+                    <Bone className="h-4 w-32" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SkeletonCard>
+
+          {/* Addresses */}
+          <SkeletonCard withSubtitle>
+            <div className="grid gap-4 md:grid-cols-2">
+              {[0, 1].map((i) => (
+                <div
+                  key={i}
+                  className="grid gap-3 rounded-xl border border-foreground/10 p-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <Bone className="h-4 w-4 rounded-full" />
+                    <Bone className="h-4 w-24" />
+                  </div>
+                  <Bone className="h-3 w-full" />
+                  <Bone className="h-3 w-2/3" />
+                </div>
+              ))}
+            </div>
+          </SkeletonCard>
+        </div>
+
+        {/* Right column */}
+        <div className="grid gap-6">
+          {/* Recent orders */}
+          <SkeletonCard>
+            <ul className="grid gap-3">
+              {[0, 1, 2].map((i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl border border-foreground/10 p-3"
+                >
+                  <Bone className="h-10 w-10 shrink-0 rounded-lg" />
+                  <div className="grid flex-1 gap-2">
+                    <div className="flex justify-between gap-2">
+                      <Bone className="h-4 w-20" />
+                      <Bone className="h-4 w-14" />
+                    </div>
+                    <Bone className="h-3 w-28" />
+                    <div className="flex justify-between gap-2">
+                      <Bone className="h-4 w-16 rounded-full" />
+                      <Bone className="h-3 w-16" />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </SkeletonCard>
+
+          {/* Account */}
+          <SkeletonCard>
+            <div className="grid gap-3">
+              <Bone className="h-10 w-full rounded-lg" />
+              <Bone className="h-10 w-full rounded-lg" />
+            </div>
+          </SkeletonCard>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default { ProductCardSkeleton, RecommendedCardSkeleton, CartItemSkeleton, AdminMenuSkeleton, OrderCardSkeleton, ProfileSkeleton };

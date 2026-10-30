@@ -38,7 +38,7 @@ interface FormProps {
     lists: FormLists,
   ) => void | Promise<void>;
   selectedList?: FormLists | null;
-  toastMessage: string;
+  toastMessage?: string;
 }
 
 const buildItem = (fields: FieldValues[], source?: FormItem | null) =>
@@ -98,7 +98,6 @@ function Form({
   const submit = async () => {
     try {
       await onSubmit(item, file, lists);
-      toast.success(toastMessage);
       onClose();
     } catch (err) {
       console.error(err);
