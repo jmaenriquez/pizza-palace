@@ -5,11 +5,13 @@ interface Cart {
     quantity: number;
 }
 
+const MAX_QTY = 30
+
 async function addToCart(item: Cart, userId: string){
 
     const { data: existing, error: cartError } = await supabase
     .from("cart")
-    .select("id, quantity, product_variants(product_id)")
+    .select("id, quantity, product_variants(id, product_id)")
     .eq("user_id", userId)
     .eq("product_variant_id", item.variantId)
     .maybeSingle();
@@ -102,18 +104,57 @@ async function getCartItems(userId: string, cartItemsId?: string[]) {
   return result;
 }
 
-async function updateItem(
-  id: string,
-  userId: string,
-  item: Cart
-) {
+async function updateItem(id: string, userId: string, item: Cart) {
+  // changing variant: is there already another row with that variant?
+  if (item.variantId !== undefined) {
+    const { data: duplicate, error: dupError } = await supabase
+      .from("cart")
+      .select("id, quantity")
+      .eq("user_id", userId)
+      .eq("product_variant_id", item.variantId)
+      .neq("id", id)
+      .maybeSingle();
+
+    if (dupError) throw dupError;
+
+    if (duplicate) {
+      const { data: current, error: currentError } = await supabase
+        .from("cart")
+        .select("quantity")
+        .eq("id", id)
+        .eq("user_id", userId)
+        .single();
+
+      if (currentError) throw currentError;
+
+      // keep the existing row, add this row's quantity to it
+      const { error: mergeError } = await supabase
+        .from("cart")
+        .update({
+          quantity: Math.min((duplicate.quantity ?? 0) + (current.quantity ?? 0), MAX_QTY),
+        })
+        .eq("id", duplicate.id)
+        .eq("user_id", userId);
+
+      if (mergeError) throw mergeError;
+
+      // then remove the row that just became a duplicate
+      const { error: deleteError } = await supabase
+        .from("cart")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (deleteError) throw deleteError;
+
+      return { merged: true };
+    }
+  }
+
+  // normal update (no duplicate found)
   const updateData = {
-    ...(item.variantId !== undefined && {
-      product_variant_id: item.variantId,
-    }),
-    ...(item.quantity !== undefined && {
-      quantity: item.quantity,
-    }),
+    ...(item.variantId !== undefined && { product_variant_id: item.variantId }),
+    ...(item.quantity !== undefined && { quantity: item.quantity }),
   };
 
   const { error } = await supabase
@@ -123,6 +164,8 @@ async function updateItem(
     .eq("user_id", userId);
 
   if (error) throw error;
+
+  return { merged: false };
 }
 
 async function removeFromCart(itemId: string, userId: string){

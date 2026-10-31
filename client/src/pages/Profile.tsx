@@ -28,6 +28,7 @@ import { formatDate } from "../utils/formatDateTime";
 import Form from "../components/reusable/Form";
 import Button from "../widgets/Button";
 import SkeletonLoad from "../components/reusable/SkeletonLoad";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   fname: string;
@@ -188,6 +189,7 @@ function Profile() {
 
   // --------------------------------------------- utilities -----------------------------------------------------------
 
+  const nav = useNavigate();
   const initials =
     `${userProfile?.profile.fname[0]}${userProfile?.profile.lname[0]}`.toUpperCase();
 
@@ -593,27 +595,27 @@ function Profile() {
           {/* Recent orders */}
           <Card
             title="Recent orders"
-            action={
-              <button
-                type="button"
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                View all
-              </button>
-            }
+            // action={
+            //   <button
+            //     type="button"
+            //     className="text-xs font-medium text-primary hover:underline"
+            //   >
+            //     View all
+            //   </button>
+            // }
           >
-            <ul className="grid gap-3">
+            <ul className="grid gap-3 max-h-80 overflow-y-auto scrollbar-none">
               {orders
                 .sort(
                   (a, b) =>
                     new Date(b.ordered_date).getTime() -
                     new Date(a.ordered_date).getTime(),
                 )
-                .slice(0, 3)
                 .map((o) => (
                   <li key={o.id}>
                     <button
                       type="button"
+                      onClick={() => nav(`/receipt/${o.id}`)}
                       className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-foreground/10 p-3 text-left transition hover:border-primary/50"
                     >
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground/50 group-hover:text-primary">

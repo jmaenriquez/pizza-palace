@@ -80,7 +80,6 @@ function Receipt() {
   // --------------------------------------------- utilities ---------------------------------------------------
   const nav = useNavigate();
   const { id } = useParams<{ id: string }>();
-  console.log(" Receipt mounted, id: ", id);
 
   // --------------------------------------------- states ------------------------------------------------------
   const [orderDetails, setOrderDetails] = React.useState<OrderReceipt | null>(
@@ -343,7 +342,7 @@ function Receipt() {
                 Order instructions
               </p>
               <p className="mt-1">
-                Please ring the doorbell twice. No onions on the pizza.
+                {orderDetails.order_instructions}
               </p>
             </div>
           )}

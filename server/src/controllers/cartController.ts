@@ -28,15 +28,13 @@ async function get(req:Request, res:Response){
     }
 }
 
-async function update(req:Request, res:Response){
-
-    try{
+async function update(req: Request, res: Response) {
+    try {
         const { id } = req.params
         const userId = res.locals.userId as string;
-        const update = await model.updateItem(String(id), userId, req.body);
-        res.status(200).json({update, message: 'Item updated successfully.'}) 
-
-    }catch(err){
+        const result = await model.updateItem(String(id), userId, req.body);
+        res.status(200).json({ ...result, message: 'Item updated successfully.' })
+    } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to update item on cart' });
     }

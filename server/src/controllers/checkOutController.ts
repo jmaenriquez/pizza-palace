@@ -74,44 +74,50 @@ async function placeOrder(req: Request, res: Response) {
 }
 
 async function getReceipt(req: Request, res: Response) {
-  
-    try{
-
-        const userId = res.locals.userId;
-        const { id } = req.params
-        const order = await model.getOrder(userId, String(id))
-        res.status(200).json(order);
-    }catch(err){
-        console.error(err);
-        res.status(500).json({ error: "Failed to get order details." });
-    }
+  try {
+    const userId = res.locals.userId;
+    const { id } = req.params;
+    const order = await model.getOrder(userId, String(id));
+    res.status(200).json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get order details." });
+  }
 }
 
 //get all orders of a user
-async function getAllOrders(req: Request, res: Response){
-    try{
-        const userId = res.locals.userId;
-        const orders = await model.getAllOrders(userId);
-        res.status(200).json(orders);
-    }catch(err){
-        console.error(err);
-        res.status(500).json({ error: "Failed to get all orders" })
-    }
+async function getAllOrders(req: Request, res: Response) {
+  try {
+    const userId = res.locals.userId;
+    const orders = await model.getAllOrders(userId);
+    res.status(200).json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get all orders" });
+  }
 }
 
 // get all users' order
-async function getAllUserOrders(req: Request, res: Response){
-    try{
-      const orders = await model.getAllUserOrders();
-      res.status(200).json(orders);
-    }catch(err){
-      console.error(err);
-      res.status(500).json({ error: "Failed to get all user orders." });
-    }
+async function getAllUserOrders(req: Request, res: Response) {
+  try {
+    const orders = await model.getAllUserOrders();
+    res.status(200).json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get all user orders." });
+  }
 }
 
-const ORDER_STATUSES = ["Pending", "Preparing", "Ready", "Out for Delivery", "Delivered", "Picked Up", "Canceled"]
-const PAYMENT_STATUSES = ["Pending Payment", "Completed"]
+const ORDER_STATUSES = [
+  "Pending",
+  "Preparing",
+  "Ready",
+  "Out for Delivery",
+  "Delivered",
+  "Picked Up",
+  "Canceled",
+];
+const PAYMENT_STATUSES = ["Pending Payment", "Completed"];
 
 async function updateUserOrder(req: Request, res: Response) {
   try {
@@ -124,16 +130,30 @@ async function updateUserOrder(req: Request, res: Response) {
     if (order_status !== undefined && !ORDER_STATUSES.includes(order_status)) {
       return res.status(400).json({ error: "Invalid order status." });
     }
-    if (payment_status !== undefined && !PAYMENT_STATUSES.includes(payment_status)) {
+    if (
+      payment_status !== undefined &&
+      !PAYMENT_STATUSES.includes(payment_status)
+    ) {
       return res.status(400).json({ error: "Invalid payment status." });
     }
 
-    await model.updateUserOrderStatus(String(id), { order_status, payment_status });
+    await model.updateUserOrderStatus(String(id), {
+      order_status,
+      payment_status,
+    });
     res.status(200).json({ message: "Order updated." });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to update the status of this order" });
+    res
+      .status(500)
+      .json({ error: "Failed to update the status of this order" });
   }
 }
 
-export default { placeOrder, getReceipt, getAllOrders, getAllUserOrders, updateUserOrder };
+export default {
+  placeOrder,
+  getReceipt,
+  getAllOrders,
+  getAllUserOrders,
+  updateUserOrder,
+};

@@ -44,8 +44,11 @@ function validateOrder(req: Request, res: Response, next: NextFunction) {
       errors.push("Please select a preferred time of delivery.");
     }
   }
+  const method = ["Cash", "Card", "Bank", "Gcash"];
   if (!payment_method) {
     errors.push("Please select a payment method.");
+  }else if (!method.includes(payment_method)) {
+    errors.push("Invalid payment method.");
   }
 
   if (errors.length > 0) {

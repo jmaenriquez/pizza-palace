@@ -72,42 +72,59 @@ function Cart() {
     }
   };
 
-  const updateVariant = async (id: string, variantId: string) => {
-    const item = cart.find((c) => c.id === id);
-    if (!item) return;
+ const updateVariant = async (id: string, variantId: string) => {
+  const item = cart.find((c) => c.id === id);
+  if (!item) return;
 
-    const selectedVariant = item.available_variants.find(
-      (v) => v.id === variantId,
-    );
+  const selectedVariant = item.available_variants.find(
+    (v) => v.id === variantId,
+  );
 
-    if (!selectedVariant) {
-      toast.error("Selected variant not found.");
+  if (!selectedVariant) {
+    toast.error("Selected variant not found.");
+    return;
+  }
+
+  try {
+    const result = await api.updateItem(id, { variantId });
+
+    // the server found another row with this variant, merged them and deleted this one
+    if (result?.merged) {
+      const data: CartItem[] = await api.getCartItems();
+
+      // keep the checkboxes the user already ticked
+      setCart((prev) =>
+        data.map((row) => ({
+          ...row,
+          is_checked: prev.find((p) => p.id === row.id)?.is_checked ?? false,
+        })),
+      );
+
+      await refreshCart();
       return;
     }
 
-    try {
-      await api.updateItem(id, { variantId });
 
-      setCart((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                product_variants: {
-                  ...selectedVariant,
-                  products: item.product_variants.products,
-                },
-              }
-            : item,
-        ),
-      );
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              product_variants: {
+                ...selectedVariant,
+                products: item.product_variants.products,
+              },
+            }
+          : item,
+      ),
+    );
 
-      toast.success("Variant updated.");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to change variant.");
-    }
-  };
+    toast.success("Variant updated.");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to change variant.");
+  }
+};
 
   const removeItem = async (id: string) => {
     try {
