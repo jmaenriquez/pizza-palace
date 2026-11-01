@@ -55,4 +55,27 @@ async function updateProfile(id: string, profile: UserCreds){
     return response.json();
 }
 
-export default { getProfile, updateProfile }
+async function deleteUser(id: string){
+    
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if(!session){
+        throw new Error("You cannot delete an account without signing in.");
+    }
+
+    if(id === "5207efef-62e1-41d9-a11d-77848756b7ac"){
+        throw new Error("You cannot delete the test account")
+    }
+
+    const response = await fetch(`${BASE_URL}/user_profile/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization : `Bearer ${session.access_token}` }
+    })
+
+    if(!response.ok){
+        const data = await response.json();
+        throw new Error(data.error ?? "Failed to delete account.");
+    }
+}
+
+export default { getProfile, updateProfile, deleteUser }

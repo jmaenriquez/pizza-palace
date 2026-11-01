@@ -6,5 +6,6 @@ const route = Router();
 
 route.get('/user_profile', checkAuth.authenticateUser, ctrl.get );
 route.put('/user_profile/:id', checkAuth.authenticateUser, ctrl.update);
+route.delete('/user_profile/:id', checkAuth.authenticateUser, ctrl.deleteUser);
 
 export default route;

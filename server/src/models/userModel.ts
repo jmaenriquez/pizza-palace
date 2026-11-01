@@ -55,6 +55,15 @@ async function editUserProfile(id: string, user: UserProfile ){
     .single();
 
     if(profileError) throw profileError;
+
+    return data;
 }
 
-export default { getUser, editUserProfile }
+async function deleteUser(userId: string) {
+    
+    const { error } = await supabase.auth.admin.deleteUser(userId, false)
+
+    if(error) throw error
+}
+
+export default { getUser, editUserProfile, deleteUser }

@@ -30,4 +30,21 @@ async function update(req: Request, res: Response) {
   }
 }
 
-export default { get, update };
+async function deleteUser(req:Request, res:Response){
+
+  try{
+    const userId = res.locals.userId as string
+
+    if(userId === "5207efef-62e1-41d9-a11d-77848756b7ac"){
+      throw new Error("You cannot delete the test account");
+    }
+
+    await model.deleteUser(userId);
+    res.status(200).json({ message: "Account deleted successfully." });
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+}
+
+export default { get, update, deleteUser };

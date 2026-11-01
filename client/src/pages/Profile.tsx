@@ -29,6 +29,7 @@ import Form from "../components/reusable/Form";
 import Button from "../widgets/Button";
 import SkeletonLoad from "../components/reusable/SkeletonLoad";
 import { useNavigate } from "react-router-dom";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 interface User {
   fname: string;
@@ -181,6 +182,7 @@ function Profile() {
   const [address, setAddress] = React.useState<Address[]>([]);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [isProfileFormOpen, setIsProfileFormOpen] = React.useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
 
   const [selectedAddress, setSelectedAddress] = React.useState<Record<
     string,
@@ -254,10 +256,27 @@ function Profile() {
         birthday: item.birthday,
       };
       await api.updateProfile(userProfile.user.id, payload);
-      toast.success("User Profile successfully edited.")
+      toast.success("User Profile successfully edited.");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update user profile");
+    }
+
+    getUserProfile();
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!userProfile) return;
+
+    try {
+      await api.deleteUser(userProfile.user.id);
+
+      await supabase.auth.signOut();
+      toast.success("Account successfully deleted.");
+      nav("/")
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Failed to delete account.");
     }
   };
 
@@ -276,7 +295,9 @@ function Profile() {
         ? await addressAPI.createAddress(payload)
         : await addressAPI.updateAddress(selectedAddress.id, payload);
 
-      !selectedAddress ? toast.success("Address successfully added.") : toast.success("Address successfully edited.")
+      !selectedAddress
+        ? toast.success("Address successfully added.")
+        : toast.success("Address successfully edited.");
       setIsFormOpen(false);
       getAddress();
       setSelectedAddress(null);
@@ -289,7 +310,8 @@ function Profile() {
   const handleAddressDelete = async (id: string) => {
     try {
       await addressAPI.deleteAddress(id);
-      toast("Address successfully deleted.");
+      toast.success("Address successfully deleted.");
+      getAddress();
     } catch (err) {
       console.error(err);
       toast.error(`Failed to delete ${selectedAddress!.name} address`);
@@ -350,7 +372,8 @@ function Profile() {
             </div>
             <div className="min-w-0 pb-1">
               <h2 className=" text-sm font-bold sm:text-lg md:text-xl lg:text-2xl">
-                {userProfile.profile.fname} {userProfile.profile.mname} {userProfile.profile.lname}
+                {userProfile.profile.fname} {userProfile.profile.mname}{" "}
+                {userProfile.profile.lname}
               </h2>
               <p className="text-xs md:text-sm text-foreground/55">
                 Member since {formatDate(userProfile.profile.created_at)}
@@ -388,13 +411,18 @@ function Profile() {
           <Card
             title="Personal information"
             subtitle="Used for order updates and pickup or delivery questions."
-
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <Field
                 icon={LuUserRound}
                 label="Name"
-                value={[userProfile.profile.fname, userProfile.profile.mname, userProfile.profile.lname].filter(Boolean).join(" ")}
+                value={[
+                  userProfile.profile.fname,
+                  userProfile.profile.mname,
+                  userProfile.profile.lname,
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               />
               <Field
                 icon={LuCalendar}
@@ -660,8 +688,34 @@ function Profile() {
 
           {/* Account */}
           <Card title="Account">
+            <div>
+            <button
+              onClick={() => setIsDeleteOpen(true)}
+              className="text-sm mb-4 text-primary border-b hover:text-red-700"
+            >
+              Delete Account
+            </button>
+
+            <ConfirmationModal
+            type="info"
+            title={`Delete ${userProfile.profile.fname}?`}
+            message="Are you sure you want to delete this account? This action cannot be undone."
+            onClose={function (){setIsDeleteOpen(false)} }
+            isOpen={isDeleteOpen}
+            onConfirm={handleDeleteProfile}
+
+            />
+            </div>
             <div className="grid gap-3">
-              <button type="button" className={`${ghostButton} justify-start`} onClick={()=> toast.error("Sorry you can't change this user's credentials 😛")}>
+              <button
+                type="button"
+                className={`${ghostButton} justify-start`}
+                onClick={() =>
+                  toast.error(
+                    "Sorry you can't change this user's credentials 😛",
+                  )
+                }
+              >
                 <LuKeyRound className="h-4 w-4 text-primary" />
                 Change email and password
               </button>
