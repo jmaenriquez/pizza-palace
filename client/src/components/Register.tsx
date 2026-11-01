@@ -20,7 +20,6 @@ interface UserCreds {
 }
 
 function Register() {
-
   // ---------------------------------utilities--------------------------
 
   const nav = useNavigate();
@@ -49,66 +48,70 @@ function Register() {
   };
 
   const handleNext = () => {
-       setNavStep( navStep + 1)
-  }
+    setNavStep(navStep + 1);
+  };
 
   const handleBack = () => {
-       setNavStep( navStep - 1)
-  }
+    setNavStep(navStep - 1);
+  };
 
   const handleSubmit = async () => {
-    try{
-      
+    try {
+      if (user.password !== confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: user.email,
-        password: user.password
-      })
+        password: user.password,
+        options: {
+          data: {
+            fname: user.fname,
+            mname: user.mname,
+            lname: user.lname,
+            contact: user.contact,
+            birthday: user.birthday,
+          },
+        },
+      });
 
-      if(authError){
-        console.error('Failed to create account:', authError.message)
-        toast.error(authError.message)
-        return
+      if (authError) {
+        console.error("Failed to create account:", authError.message);
+        toast.error(authError.message);
+        return;
       }
 
-      if(!authData.user){
-        console.error('Signup success but no user was returned' );
-        return; 
+      if (!authData.user) {
+        console.error("Signup success but no user was returned");
+        return;
       }
 
-      const { error: profileError } = await supabase
-      .from('user_infos')
-      .insert({
-        id: authData.user.id,
-        fname: user.fname,
-        mname: user.mname,
-        lname: user.lname,
-        birthday: user.birthday,
-        contact: user.contact,
-      })
-
-      if(profileError){
-        console.error('Failed to save user info: ', profileError.message );
-        toast.error(profileError.message);
-        return
-      }
-
-      toast.success('User created successfully.')
-      setUser({ email: "", password: "", fname: "", mname: "", lname: "", contact: "", birthday: "" });
-      nav('/login');
-    }catch(err){
+      toast.success("User created successfully.");
+      setUser({
+        email: "",
+        password: "",
+        fname: "",
+        mname: "",
+        lname: "",
+        contact: "",
+        birthday: "",
+      });
+      setConfirmPassword("");
+      nav("/login");
+    } catch (err) {
       console.error(err);
-    } 
-  }
+    }
+  };
 
   const confirmPasswordOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(e.target.value)
-  }
+    setConfirmPassword(e.target.value);
+  };
 
   return (
     <div className="w-full">
       <div className="grid gap-8">
         <div className="grid gap-4">
-
           <div className="flex justify-center items-center md:hidden">
             <img src="/logo.png" alt="" className="w-32" />
           </div>
@@ -121,19 +124,19 @@ function Register() {
             <div className="w-50 h-0.5 rounded-full bg-gray-300 flex items-center justify-between">
               <div
                 className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-gray-300 ${
-                  navStep == 0? "bg-primary" : ''
+                  navStep == 0 ? "bg-primary" : ""
                 }`}
               />
 
               <div
                 className={`w-2.5 h-2.5 rounded-full bg-gray-300 ${
-                  navStep == 1? "bg-primary" : ''
+                  navStep == 1 ? "bg-primary" : ""
                 }`}
               />
 
               <div
                 className={`w-2.5 h-2.5 rounded-full bg-gray-300 ${
-                  navStep == 2? "bg-primary" : ''
+                  navStep == 2 ? "bg-primary" : ""
                 }`}
               />
             </div>
@@ -145,8 +148,7 @@ function Register() {
             onSubmit={(e) => e.preventDefault()}
             className="flex flex-col gap-4"
           >
-            {
-              navStep === 0 &&
+            {navStep === 0 && (
               <>
                 <div className="">
                   <Fields.Input
@@ -181,10 +183,9 @@ function Register() {
                   />
                 </div>
               </>
-            }
+            )}
 
-            {
-              navStep === 1 &&
+            {navStep === 1 && (
               <>
                 <div className="">
                   <Fields.Input
@@ -208,10 +209,9 @@ function Register() {
                   />
                 </div>
               </>
-            }
+            )}
 
-            {
-              navStep === 2 &&
+            {navStep === 2 && (
               <>
                 <div className="">
                   <Fields.Input
@@ -246,43 +246,34 @@ function Register() {
                   />
                 </div>
               </>
-            }
+            )}
           </form>
 
           <div className="grid gap-2">
-
-            {
-              navStep !== 2 ?
-              <Button.Solid
-                name="Next"
-                type="button"
-                onClick={handleNext}
-              />
-              :
+            {navStep !== 2 ? (
+              <Button.Solid name="Next" type="button" onClick={handleNext} />
+            ) : (
               <Button.Solid
                 name="Sign Up"
                 type="button"
                 onClick={handleSubmit}
               />
-            }
+            )}
 
-            {
-              navStep !== 0 &&
-              <Button.Hollow
-                name="Back"
-                type="button"
-                onClick={handleBack}
-              />
-            }
+            {navStep !== 0 && (
+              <Button.Hollow name="Back" type="button" onClick={handleBack} />
+            )}
 
             <div className="flex justify-center mt-2">
-              <p className="font-poppins text-xs md:text-sm text-gray-400">Already have an account?
-                <NavLink to={'/login'} replace className={'text-primary'}> Log in </NavLink>
+              <p className="font-poppins text-xs md:text-sm text-gray-400">
+                Already have an account?
+                <NavLink to={"/login"} replace className={"text-primary"}>
+                  {" "}
+                  Log in{" "}
+                </NavLink>
               </p>
             </div>
           </div>
-
-
 
           <div className="flex justify-between gap-4 items-center">
             <div className="w-full h-0.5 bg-gray-300 rounded-full" />
