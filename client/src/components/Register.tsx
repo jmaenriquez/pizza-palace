@@ -1,6 +1,7 @@
 import React from "react";
 import toast from "react-hot-toast";
 import supabase from "../config/supabase";
+import { signInWithOAuth } from "../config/supabase";
 
 import Button from "../widgets/Button";
 import Fields from "../widgets/Fields";
@@ -296,14 +297,14 @@ function Register() {
               icon={FaFacebook}
               name="Facebook"
               type="button"
-              onClick={() => {console.log("Facebook Clicked"); toast.success("Facebook registration is still under development")}}
+              onClick={() => signInWithOAuth("facebook")}
             />
 
             <Button.Hollow
               icon={FaGoogle}
               name="Google"
               type="button"
-              onClick={() => {console.log("Google Clicked"); toast.success("Google registration is still under development")}}
+              onClick={() => signInWithOAuth("google")}
             />
           </div>
         </div>

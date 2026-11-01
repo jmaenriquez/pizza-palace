@@ -132,7 +132,10 @@ function AboutUs() {
       </section>
 
       {/* Visit */}
-      <section className="mt-8 overflow-hidden rounded-3xl bg-primary text-white lg:mt-10">
+      <section
+        id="visit"
+        className="mt-8 overflow-hidden rounded-3xl bg-primary text-white lg:mt-10"
+      >
         <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-2 lg:items-center lg:gap-12">
           <div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -187,6 +190,28 @@ function AboutUs() {
               </span>
             </li>
           </ul>
+        </div>
+
+        <div id="privacy" className="p-8">
+          <div className="lg:border border-background lg:p-4 rounded-lg" >
+            <h2 className="text-base font-semibold mb-4">Privacy Policy</h2>
+            <div className="flex flex-col gap-2 text-xs">
+              <p className="">
+                Pizza Palace collects your name, email address, birthday, and
+                contact number when you create an account, and your name and
+                email when you sign in with Google or Facebook.
+              </p>
+              <p className="">
+                We use this information only to manage your account and process
+                your orders. We do not sell or share your personal data with
+                third parties.
+              </p>
+              <p>
+                To request deletion of your data, contact us at{" "}
+                <strong>jmaenriquez1031@gmail.com.</strong>
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
