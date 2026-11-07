@@ -231,7 +231,11 @@ function Orders() {
                     {getItemLabel(order.order_items)}
                   </h3>
                   <p className="text-sm text-foreground/70">
-                    {order.user_infos.fname} {order.user_infos.lname}
+                    {
+                      order.user_infos
+                      ? `${order.user_infos.fname} ${order.user_infos.lname}`
+                      : "Unknown customer"
+                    }
                   </p>
                 </div>
 
